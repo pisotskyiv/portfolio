@@ -6,8 +6,9 @@ Personal portfolio site. The build is part of the showcase: test-driven, CI-gate
 
 - **Content is data.** Edit `lib/projects.ts` and `lib/site.ts`; keep component JSX presentational.
 - **Server components by default.** Client islands only where interaction requires them.
-- **TDD.** Write or extend a Vitest test with each change.
+- **TDD.** Write Vitest unit test first, then implement. Write Playwright E2E test first for each user flow, then build the UI to pass it.
 - **Gates (run before every push; CI enforces them):** `npm run lint && npm run typecheck && npm test && npm run build`.
+- **E2E:** `npm run test:e2e` — run locally before shipping any user-visible feature. Lives in `e2e/`.
 - **Git.** Conventional commits, small PRs. Push to `main` = production deploy; PR = preview deploy.
 
 ## Component architecture
@@ -36,6 +37,7 @@ Wiki: `notes/styleguide/` (gitignored). Load only the file you need — never re
 | Component structure, exports, event handlers | `notes/styleguide/components.md` |
 | Tailwind classes, clsx, CSS variables, motion | `notes/styleguide/tailwind.md` |
 | Writing and naming tests, RTL patterns | `notes/styleguide/testing.md` |
+| Playwright E2E — flow tests, selectors, config | `notes/styleguide/testing-e2e.md` |
 | File naming, import order, path aliases | `notes/styleguide/files-imports.md` |
 
 When introducing a pattern not covered: flag it, ask if it becomes a rule, add it before closing the PR.
