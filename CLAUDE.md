@@ -8,8 +8,10 @@ Personal portfolio site. The build is part of the showcase: test-driven, CI-gate
 - **Server components by default.** Client islands only where interaction requires them.
 - **TDD.** Write Vitest unit test first, then implement. Write Playwright E2E test first for each user flow, then build the UI to pass it.
 - **Gates (run before every push; CI enforces them):** `npm run lint && npm run typecheck && npm test && npm run build`.
-- **E2E:** `npm run test:e2e` — run locally before shipping any user-visible feature. Lives in `e2e/`.
+- **E2E:** `npm run test:e2e` — run locally before shipping any user-visible feature. Lives in `e2e/`. Includes axe accessibility scan on every page.
 - **Git.** Conventional commits, small PRs. Push to `main` = production deploy; PR = preview deploy.
+- **Accessible by default.** Semantic HTML, visible focus states on all interactive elements, axe scan passes, WCAG AA contrast minimums, `prefers-reduced-motion` respected. See `notes/styleguide/accessibility.md`.
+- **Responsive by default.** Mobile-first Tailwind classes. Every section tested at 375px and 1280px. No horizontal overflow at any viewport.
 
 ## Component architecture
 
@@ -35,7 +37,8 @@ Wiki: `notes/styleguide/` (gitignored). Load only the file you need — never re
 | useState, server vs client state | `notes/styleguide/state.md` |
 | App Router, Server Components, images, fonts | `notes/styleguide/nextjs.md` |
 | Component structure, exports, event handlers | `notes/styleguide/components.md` |
-| Tailwind classes, clsx, CSS variables, motion | `notes/styleguide/tailwind.md` |
+| Tailwind classes, clsx, CSS variables, motion, responsive | `notes/styleguide/tailwind.md` |
+| Semantic HTML, ARIA, focus, contrast, axe | `notes/styleguide/accessibility.md` |
 | Writing and naming tests, RTL patterns | `notes/styleguide/testing.md` |
 | Playwright E2E — flow tests, selectors, config | `notes/styleguide/testing-e2e.md` |
 | File naming, import order, path aliases | `notes/styleguide/files-imports.md` |

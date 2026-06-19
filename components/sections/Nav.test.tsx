@@ -3,6 +3,18 @@ import { describe, it, expect } from "vitest";
 import { Nav } from "./Nav";
 
 describe("Nav", () => {
+  it("renders inside a header landmark", () => {
+    render(<Nav />);
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+  });
+
+  it("renders a labelled navigation landmark", () => {
+    render(<Nav />);
+    expect(
+      screen.getByRole("navigation", { name: "Main navigation" }),
+    ).toBeInTheDocument();
+  });
+
   it("shows site name as a link", () => {
     render(<Nav />);
     expect(
@@ -40,10 +52,5 @@ describe("Nav", () => {
       "href",
       expect.stringContaining("github.com"),
     );
-  });
-
-  it("renders inside a header landmark", () => {
-    render(<Nav />);
-    expect(screen.getByRole("banner")).toBeInTheDocument();
   });
 });

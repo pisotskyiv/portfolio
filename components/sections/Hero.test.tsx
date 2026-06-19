@@ -3,6 +3,13 @@ import { describe, it, expect } from "vitest";
 import { Hero } from "./Hero";
 
 describe("Hero", () => {
+  it("renders a labelled section landmark", () => {
+    render(<Hero />);
+    expect(
+      screen.getByRole("region", { name: /Vlad Pisotski/i }),
+    ).toBeInTheDocument();
+  });
+
   it("shows name as heading", () => {
     render(<Hero />);
     expect(
@@ -28,7 +35,7 @@ describe("Hero", () => {
     );
   });
 
-  it("has GitHub link", () => {
+  it("has GitHub link with correct URL", () => {
     render(<Hero />);
     expect(screen.getByRole("link", { name: /GitHub/i })).toHaveAttribute(
       "href",
@@ -36,7 +43,7 @@ describe("Hero", () => {
     );
   });
 
-  it("has LinkedIn link", () => {
+  it("has LinkedIn link with correct URL", () => {
     render(<Hero />);
     expect(screen.getByRole("link", { name: /LinkedIn/i })).toHaveAttribute(
       "href",
