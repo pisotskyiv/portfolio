@@ -11,20 +11,20 @@ export function Hero() {
       className="flex min-h-[calc(100svh-4rem)] items-center px-12 py-20"
     >
       <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-16 lg:grid-cols-[3fr_2fr]">
-        <div>
+        <div className="flex flex-col gap-6">
           <p
-            className="mb-6 text-xs uppercase tracking-[0.2em] text-muted"
+            className="text-xs uppercase tracking-[0.2em] text-muted"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             {siteConfig.title}
           </p>
           <h1
             id="hero-heading"
-            className="mb-8 max-w-3xl text-5xl font-bold leading-none tracking-tight text-text sm:text-6xl md:text-7xl lg:text-8xl"
+            className="max-w-3xl text-5xl font-bold leading-none tracking-tight text-text sm:text-6xl md:text-7xl lg:text-8xl"
           >
             {siteConfig.name}
           </h1>
-          <p className="mb-12 max-w-lg text-base leading-relaxed text-muted sm:text-lg">
+          <p className="max-w-lg text-base leading-relaxed text-muted sm:text-lg">
             {siteConfig.shortPitch}
           </p>
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">

@@ -17,29 +17,24 @@ export function Projects() {
           {projects.map((project) => (
             <li
               key={project.slug}
-              className="border border-transparent bg-surface p-8 transition-colors hover:border-accent"
+              className="flex flex-col gap-3 border border-transparent bg-surface p-8 transition-colors hover:border-accent"
             >
               {project.highlight && (
-                <p className="mb-3 text-xs font-medium uppercase tracking-[0.15em] text-accent">
+                <p className="text-xs font-medium uppercase tracking-[0.15em] text-accent">
                   {project.highlight}
                 </p>
               )}
-              <h3 className="mb-3 text-xl font-bold text-text">
-                {project.title}
-              </h3>
-              <p className="mb-6 text-sm leading-relaxed text-muted">
+              <h3 className="text-xl font-bold text-text">{project.title}</h3>
+              <p className="text-sm leading-relaxed text-muted">
                 {project.description}
               </p>
               <ul
-                className="mb-6 flex list-none flex-wrap gap-2 pl-0"
+                className="flex list-none flex-wrap gap-2 pl-0"
                 aria-label="Technologies used"
                 role="list"
               >
                 {project.tech.map((tag) => (
-                  <li
-                    key={tag}
-                    className="border border-border px-2 py-1 text-xs text-muted"
-                  >
+                  <li key={tag} className="border border-border text-xs text-muted">
                     {tag}
                   </li>
                 ))}

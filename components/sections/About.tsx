@@ -7,33 +7,33 @@ export function About() {
       aria-labelledby="about-heading"
       className="px-12 py-20"
     >
-      <div className="mx-auto w-full max-w-5xl">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <p
           id="about-heading"
           role="heading"
           aria-level={2}
-          className="mb-10 text-xs uppercase tracking-[0.2em] text-muted"
+          className="text-xs uppercase tracking-[0.2em] text-muted"
           style={{ fontFamily: "var(--font-mono)" }}
         >
           About
         </p>
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-[3fr_2fr]">
-          <div>
+          <div className="flex flex-col gap-6">
             <p className="text-base leading-relaxed text-muted sm:text-lg">
               {siteConfig.about}
             </p>
             <a
               href={siteConfig.links.resume}
               aria-label="Download resume"
-              className="mt-8 inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+              className="inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
             >
               Resume
             </a>
           </div>
           <div className="flex flex-col gap-8">
-            <div>
+            <div className="flex flex-col gap-2">
               <p
-                className="mb-4 text-xs uppercase tracking-[0.2em] text-muted"
+                className="text-xs uppercase tracking-[0.2em] text-muted"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
                 Education
@@ -51,9 +51,9 @@ export function About() {
                 ))}
               </ul>
             </div>
-            <div>
+            <div className="flex flex-col gap-1">
               <p
-                className="mb-2 text-xs uppercase tracking-[0.2em] text-muted"
+                className="text-xs uppercase tracking-[0.2em] text-muted"
                 style={{ fontFamily: "var(--font-mono)" }}
               >
                 Location
