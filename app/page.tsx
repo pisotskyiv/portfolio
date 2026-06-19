@@ -1,7 +1,13 @@
+import { Nav } from "@/components/sections/Nav";
+import { Hero } from "@/components/sections/Hero";
+
 export default function Home() {
   return (
-    <main>
-      {/* sections mount here */}
-    </main>
+    <>
+      <Nav />
+      <main>
+        <Hero />
+      </main>
+    </>
   );
 }
