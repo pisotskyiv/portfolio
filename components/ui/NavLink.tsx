@@ -6,7 +6,7 @@ interface NavLinkProps {
 
 export function NavLink({ href, children, external = false }: NavLinkProps) {
   const className =
-    "text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
+    "text-sm text-muted transition-colors hover:text-text focus-ring";
 
   if (external) {
     return (

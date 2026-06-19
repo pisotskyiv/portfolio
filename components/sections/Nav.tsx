@@ -26,12 +26,12 @@ export function Nav() {
     >
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex h-full max-w-5xl items-center justify-between px-6"
+        className="mx-auto flex h-full max-w-5xl items-center justify-between px-12"
       >
         <Link
           href="/"
           aria-label="Vlad Pisotski"
-          className="font-bold text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="font-bold text-accent transition-colors hover:text-accent-hover focus-ring"
         >
           VP
         </Link>

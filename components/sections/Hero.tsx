@@ -8,13 +8,12 @@ export function Hero() {
     <section
       id="home"
       aria-labelledby="hero-heading"
-      className="flex min-h-[calc(100svh-4rem)] items-center px-12 py-20"
+      className="section flex min-h-[calc(100svh-4rem)] items-center"
     >
       <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-16 lg:grid-cols-[3fr_2fr]">
         <div className="flex flex-col gap-6">
           <p
-            className="text-xs uppercase tracking-[0.2em] text-muted"
-            style={{ fontFamily: "var(--font-mono)" }}
+            className="eyebrow"
           >
             {siteConfig.title}
           </p>
@@ -36,7 +35,7 @@ export function Hero() {
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub"
-              className="flex min-h-11 items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+              className="flex min-h-11 items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-ring"
             >
               GitHub
               <ArrowUpRight size={14} aria-hidden="true" />
@@ -46,7 +45,7 @@ export function Hero() {
               target="_blank"
               rel="noreferrer"
               aria-label="LinkedIn"
-              className="flex min-h-11 items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+              className="flex min-h-11 items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-ring"
             >
               LinkedIn
               <ArrowUpRight size={14} aria-hidden="true" />

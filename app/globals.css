@@ -8,11 +8,24 @@
   --color-text: #F5EDE4;
   --color-muted: #8C7D74;
   --color-border: #2A211A;
-}
 
-:root {
+  --tracking-label: 0.2em;
+  --tracking-badge: 0.15em;
+
   --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
   --font-mono: var(--font-space-mono), ui-monospace, monospace;
+}
+
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-label text-muted;
+  }
+  .section {
+    @apply px-12 py-20;
+  }
 }
 
 @layer base {

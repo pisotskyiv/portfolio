@@ -5,15 +5,14 @@ export function About() {
     <section
       id="about"
       aria-labelledby="about-heading"
-      className="px-12 py-20"
+      className="section"
     >
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
         <p
           id="about-heading"
           role="heading"
           aria-level={2}
-          className="text-xs uppercase tracking-[0.2em] text-muted"
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="eyebrow"
         >
           About
         </p>
@@ -25,20 +24,17 @@ export function About() {
             <a
               href={siteConfig.links.resume}
               aria-label="Download resume"
-              className="inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+              className="inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover focus-ring"
             >
               Resume
             </a>
           </div>
           <div className="flex flex-col gap-8">
             <div className="flex flex-col gap-2">
-              <p
-                className="text-xs uppercase tracking-[0.2em] text-muted"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
+              <p className="eyebrow">
                 Education
               </p>
-              <ul className="flex list-none flex-col gap-4 pl-0" role="list">
+              <ul className="flex flex-col gap-4" role="list">
                 {siteConfig.education.map((entry) => (
                   <li key={entry.school}>
                     <p className="text-sm font-medium text-text">
@@ -52,10 +48,7 @@ export function About() {
               </ul>
             </div>
             <div className="flex flex-col gap-1">
-              <p
-                className="text-xs uppercase tracking-[0.2em] text-muted"
-                style={{ fontFamily: "var(--font-mono)" }}
-              >
+              <p className="eyebrow">
                 Location
               </p>
               <p className="text-sm text-text">{siteConfig.location}</p>

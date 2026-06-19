@@ -4,23 +4,22 @@ import { projects } from "@/lib/projects";
 
 export function Projects() {
   return (
-    <section id="work" aria-labelledby="work-heading" className="px-12 py-20">
-      <div className="mx-auto w-full max-w-5xl">
+    <section id="work" aria-labelledby="work-heading" className="section">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
         <p
           id="work-heading"
-          className="mb-10 text-xs uppercase tracking-[0.2em] text-muted"
-          style={{ fontFamily: "var(--font-mono)" }}
+          className="eyebrow"
         >
           Selected Work
         </p>
-        <ul className="flex list-none flex-col gap-4 pl-0" role="list">
+        <ul className="flex flex-col gap-4" role="list">
           {projects.map((project) => (
             <li
               key={project.slug}
               className="flex flex-col gap-3 border border-transparent bg-surface p-8 transition-colors hover:border-accent"
             >
               {project.highlight && (
-                <p className="text-xs font-medium uppercase tracking-[0.15em] text-accent">
+                <p className="text-xs font-medium uppercase tracking-badge text-accent">
                   {project.highlight}
                 </p>
               )}
@@ -29,12 +28,15 @@ export function Projects() {
                 {project.description}
               </p>
               <ul
-                className="flex list-none flex-wrap gap-2 pl-0"
+                className="flex flex-wrap gap-2"
                 aria-label="Technologies used"
                 role="list"
               >
                 {project.tech.map((tag) => (
-                  <li key={tag} className="border border-border text-xs text-muted">
+                  <li
+                    key={tag}
+                    className="border border-border text-xs text-muted"
+                  >
                     {tag}
                   </li>
                 ))}
@@ -44,7 +46,7 @@ export function Projects() {
                   <Link
                     href={project.caseStudy}
                     aria-label={`Read ${project.title} case study`}
-                    className="inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+                    className="inline-flex items-center gap-1 text-sm text-accent transition-colors hover:text-accent-hover focus-ring"
                   >
                     Case study
                     <ArrowUpRight size={14} aria-hidden="true" />
@@ -56,7 +58,7 @@ export function Projects() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`View ${project.title} live`}
-                    className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+                    className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-ring"
                   >
                     Live
                     <ArrowUpRight size={14} aria-hidden="true" />
@@ -68,7 +70,7 @@ export function Projects() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`View ${project.title} on GitHub`}
-                    className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+                    className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-ring"
                   >
                     GitHub
                     <ArrowUpRight size={14} aria-hidden="true" />

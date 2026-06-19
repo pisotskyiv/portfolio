@@ -25,7 +25,7 @@ export function Button({
 }: ButtonProps) {
   const className = clsx(
     "inline-flex items-center font-medium transition-colors",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
+    "focus-ring",
     "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
     size === "sm" && "min-h-9 px-4 py-2 text-xs",
     size === "md" && "min-h-11 px-6 py-3 text-sm",
