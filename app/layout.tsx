@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/lib/site";
+import { ChatWidget } from "@/components/ui/ChatWidget";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Skip to content
         </a>
         {children}
+        <ChatWidget />
       </body>
     </html>
   );

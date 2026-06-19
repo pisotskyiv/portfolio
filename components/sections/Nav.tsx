@@ -26,7 +26,7 @@ export function Nav() {
     >
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex h-full max-w-5xl items-center justify-between px-12"
+        className="mx-auto flex h-full max-w-5xl items-center justify-between px-4 sm:px-8 lg:px-12"
       >
         <Link
           href="/"
@@ -35,13 +35,17 @@ export function Nav() {
         >
           VP
         </Link>
-        <div className="flex items-center gap-x-6">
+        <div className="flex items-center gap-x-4 sm:gap-x-6">
           <NavLink href="#work">Work</NavLink>
           <NavLink href="#about">About</NavLink>
-          <NavLink href="#contact">Contact</NavLink>
-          <NavLink href={siteConfig.links.github} external>
-            GitHub
-          </NavLink>
+          <span className="hidden sm:contents">
+            <NavLink href="#contact">Contact</NavLink>
+          </span>
+          <span className="hidden sm:contents">
+            <NavLink href={siteConfig.links.github} external>
+              GitHub
+            </NavLink>
+          </span>
         </div>
       </nav>
     </header>

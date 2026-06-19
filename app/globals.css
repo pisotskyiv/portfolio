@@ -2,6 +2,7 @@
 
 @theme {
   --color-bg: #100D0A;
+  --color-elevated: #241B12;
   --color-surface: #2A1F17;
   --color-accent: #B45309;
   --color-accent-hover: #92400E;
@@ -26,6 +27,27 @@
   .section {
     @apply px-12 py-20;
   }
+  .highlight-border {
+    box-shadow: 0 0 0 1px var(--color-accent), 0 0 8px color-mix(in srgb, var(--color-accent) 35%, transparent);
+  }
+  .glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  @keyframes glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 1px var(--color-accent), 0 0 8px color-mix(in srgb, var(--color-accent) 35%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 1px var(--color-accent), 0 0 18px color-mix(in srgb, var(--color-accent) 65%, transparent);
+    }
+  }
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer base {
@@ -40,6 +62,11 @@
   html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar {
+    display: none;
   }
 
   body {
