@@ -8,7 +8,7 @@ export function Hero() {
     <section
       id="home"
       aria-labelledby="hero-heading"
-      className="flex min-h-[calc(100vh-4rem)] items-center px-12 py-20"
+      className="flex min-h-[calc(100svh-4rem)] items-center px-12 py-20"
     >
       <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-16 lg:grid-cols-[3fr_2fr]">
         <div>
