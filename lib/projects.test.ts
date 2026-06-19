@@ -21,8 +21,24 @@ describe("projects data integrity", () => {
     expect(project.tech.length).toBeGreaterThan(0);
   });
 
-  it.each(projects)("$slug github link is a valid https URL", (project) => {
-    expect(() => new URL(project.github)).not.toThrow();
+  it.each(projects)("$slug github link is a valid https URL when present", (project) => {
+    if (!project.github) return;
+    expect(() => new URL(project.github!)).not.toThrow();
     expect(project.github.startsWith("https://")).toBe(true);
+  });
+
+  it.each(projects)("$slug live link is a valid https URL when present", (project) => {
+    if (!project.live) return;
+    expect(() => new URL(project.live!)).not.toThrow();
+    expect(project.live.startsWith("https://")).toBe(true);
+  });
+
+  it.each(projects)("$slug caseStudy is a root-relative path when present", (project) => {
+    if (!project.caseStudy) return;
+    expect(project.caseStudy.startsWith("/")).toBe(true);
+  });
+
+  it.each(projects)("$slug has at least one link (github, live, or caseStudy)", (project) => {
+    expect(project.github || project.live || project.caseStudy).toBeTruthy();
   });
 });

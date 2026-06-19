@@ -1,5 +1,4 @@
 export type Project = {
-  /** Short identifier, also used as React key */
   slug: string;
   title: string;
   role: string;
@@ -10,7 +9,9 @@ export type Project = {
   /** Metric-backed accomplishments, sourced from the resume */
   bullets: string[];
   tech: string[];
-  github: string;
+  github?: string;
+  live?: string;
+  caseStudy?: string;
 };
 
 export const projects: Project[] = [
@@ -26,7 +27,7 @@ export const projects: Project[] = [
       "Designed a modular MongoDB Filestore supporting multiple vector store configurations, improving retrieval precision by 60% across production programs.",
     ],
     tech: ["Next.js", "TypeScript", "MongoDB", "Langfuse", "LangChain", "OpenAI"],
-    github: "https://github.com/Pisotski",
+    caseStudy: "/work/ctd-rag-chatbot",
   },
   {
     slug: "chef-jul",
@@ -42,5 +43,22 @@ export const projects: Project[] = [
     ],
     tech: ["Firebase", "React", "Node.js", "LLM Orchestration"],
     github: "https://github.com/ctd-hackaton/front-end",
+    live: "https://ctd-hackaton.web.app/",
+    caseStudy: "/work/chef-jul",
+  },
+  {
+    slug: "portfolio",
+    title: "This Portfolio",
+    role: "Author",
+    description:
+      "A recruiter-facing portfolio built with an agentic engineering workflow. Engineering values — TDD-first, error-before-happy-path, accessibility, CI gates — illustrated through the code itself.",
+    bullets: [
+      "Practiced Karpathy's agentic engineering methodology: spec-first, small reviewed increments, agent does the typing, human owns decisions.",
+      "TDD throughout: Vitest + RTL tests written before each component; 60+ tests green in CI on every push.",
+      "Error-before-happy-path convention: error.tsx and loading.tsx defined before each feature to catch silent failures early.",
+    ],
+    tech: ["Next.js 15", "TypeScript", "Tailwind v4", "Vitest", "Playwright", "GitHub Actions"],
+    github: "https://github.com/Pisotski/portfolio",
+    caseStudy: "/work/portfolio",
   },
 ];
