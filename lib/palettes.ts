@@ -44,12 +44,12 @@ export const obsidian: Palette = {
 
 export const copper: Palette = {
   name: "copper",
-  bg: "#1A1512",        // warm near-black
-  surface: "#251E18",   // warm dark
+  bg: "#100D0A",        // warm near-black
+  surface: "#2A1F17",   // warm dark
   accent: "#B45309",    // amber-700 (copper tone)
   accentHover: "#92400E", // amber-800
   text: "#F5EDE4",      // warm off-white
-  muted: "#92847A",     // warm gray
+  muted: "#8C7D74",     // warm gray
   border: "#2A211A",
 };
 

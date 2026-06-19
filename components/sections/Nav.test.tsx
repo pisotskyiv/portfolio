@@ -1,8 +1,16 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
 import { Nav } from "./Nav";
 
 describe("Nav", () => {
+  afterEach(() => {
+    Object.defineProperty(window, "scrollY", {
+      value: 0,
+      configurable: true,
+      writable: true,
+    });
+  });
+
   it("renders inside a header landmark", () => {
     render(<Nav />);
     expect(screen.getByRole("banner")).toBeInTheDocument();
@@ -52,5 +60,21 @@ describe("Nav", () => {
       "href",
       expect.stringContaining("github.com"),
     );
+  });
+
+  it("header is transparent before scrolling", () => {
+    render(<Nav />);
+    expect(screen.getByRole("banner")).toHaveClass("border-transparent");
+  });
+
+  it("header shows background after scrolling", () => {
+    Object.defineProperty(window, "scrollY", {
+      value: 50,
+      configurable: true,
+      writable: true,
+    });
+    render(<Nav />);
+    fireEvent.scroll(window);
+    expect(screen.getByRole("banner")).toHaveClass("backdrop-blur-sm");
   });
 });

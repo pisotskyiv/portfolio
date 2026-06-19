@@ -3,20 +3,23 @@ export type Project = {
   slug: string;
   title: string;
   role: string;
+  /** One or two sentence card summary */
+  description: string;
   /** Optional one-line badge, e.g. an award */
   highlight?: string;
   /** Metric-backed accomplishments, sourced from the resume */
   bullets: string[];
   tech: string[];
-  /** TODO: replace placeholder GitHub links with real repo URLs */
   github: string;
 };
 
 export const projects: Project[] = [
   {
     slug: "ctd-rag-chatbot",
-    title: "AI Benefits Chatbot — RAG Evaluation Infrastructure",
+    title: "CTD RAG Chatbot",
     role: "Full-Stack Developer, Code the Dream",
+    description:
+      "Retrieval-augmented generation pipeline for clinical trial documentation. Improved retrieval precision by 60% and increased observability by 40% through LLM-as-a-Judge evaluation infrastructure.",
     bullets: [
       "Built full-stack evaluation infrastructure on the LLM-as-a-Judge paradigm, combining automated multi-metric scoring with human validation workflows.",
       "Integrated Langfuse observability to visualize production responses via structured Scores and Sessions, increasing actionable visibility by 40%.",
@@ -27,8 +30,10 @@ export const projects: Project[] = [
   },
   {
     slug: "chef-jul",
-    title: "Chef Jul — AI Meal-Planning Assistant",
+    title: "Chef Jul",
     role: "Team Lead & Full-Stack Developer",
+    description:
+      "AI-powered meal planner with personalized nutrition intelligence built in 48 hours. Parallelized LLM pipeline cut processing time by 40%; multi-agent workflow enables ~2s preference adjustments.",
     highlight: "2nd Place, MetLife Hackathon 2025",
     bullets: [
       "Led the team from concept to a production-ready Firebase backend in under 48 hours.",

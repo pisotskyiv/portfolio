@@ -1,46 +1,47 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import clsx from "clsx";
 import { siteConfig } from "@/lib/site";
+import { NavLink } from "@/components/ui/NavLink";
 
 export function Nav() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-sm">
+    <header
+      className={clsx(
+        "sticky top-0 z-50 h-16 border-b transition-colors duration-200",
+        scrolled
+          ? "border-border bg-bg/90 backdrop-blur-sm"
+          : "border-transparent bg-transparent",
+      )}
+    >
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-4"
+        className="mx-auto flex h-full max-w-5xl items-center justify-between px-6"
       >
         <Link
           href="/"
-          className="font-medium text-text transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          aria-label="Vlad Pisotski"
+          className="font-bold text-accent transition-colors hover:text-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
-          {siteConfig.name}
+          VP
         </Link>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <a
-            href="#work"
-            className="text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-          >
-            Work
-          </a>
-          <a
-            href="#about"
-            className="text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-          >
-            About
-          </a>
-          <a
-            href="#contact"
-            className="text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-          >
-            Contact
-          </a>
-          <a
-            href={siteConfig.links.github}
-            target="_blank"
-            rel="noreferrer"
-            className="text-sm text-muted transition-colors hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-          >
+        <div className="flex items-center gap-x-6">
+          <NavLink href="#work">Work</NavLink>
+          <NavLink href="#about">About</NavLink>
+          <NavLink href="#contact">Contact</NavLink>
+          <NavLink href={siteConfig.links.github} external>
             GitHub
-          </a>
+          </NavLink>
         </div>
       </nav>
     </header>

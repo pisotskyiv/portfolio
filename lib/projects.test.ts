@@ -15,6 +15,7 @@ describe("projects data integrity", () => {
     expect(project.slug).toMatch(/^[a-z0-9-]+$/);
     expect(project.title.trim()).not.toBe("");
     expect(project.role.trim()).not.toBe("");
+    expect(project.description.trim()).not.toBe("");
     expect(project.bullets.length).toBeGreaterThan(0);
     expect(project.bullets.every((b) => b.trim().length > 0)).toBe(true);
     expect(project.tech.length).toBeGreaterThan(0);
