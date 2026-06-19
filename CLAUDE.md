@@ -10,6 +10,36 @@ Personal portfolio site. The build is part of the showcase: test-driven, CI-gate
 - **Gates (run before every push; CI enforces them):** `npm run lint && npm run typecheck && npm test && npm run build`.
 - **Git.** Conventional commits, small PRs. Push to `main` = production deploy; PR = preview deploy.
 
+## Component architecture
+
+- `components/ui/` — reusable primitives (Button, Card, Badge, etc.)
+- `components/sections/` — one-off page sections (Hero, Projects, About, Contact)
+- Props: explicit and fully typed — no prop spreading, no `...rest` passthrough
+- Every component gets a test; no untested components ship
+- Server components by default; `"use client"` only when interaction requires it
+
+## Style rules
+
+- No emoji anywhere — not in portfolio content, PR descriptions, READMEs, commit messages, or comments.
+- Structure with lines, indentation, color, and font size — never emoji as visual markers.
+
+## Style guide
+
+Wiki: `notes/styleguide/` (gitignored). Load only the file you need — never read all at once.
+
+| Task | Load |
+|---|---|
+| TypeScript types, generics, props | `notes/styleguide/typescript.md` |
+| useEffect, useMemo, custom hooks | `notes/styleguide/hooks.md` |
+| useState, server vs client state | `notes/styleguide/state.md` |
+| App Router, Server Components, images, fonts | `notes/styleguide/nextjs.md` |
+| Component structure, exports, event handlers | `notes/styleguide/components.md` |
+| Tailwind classes, clsx, CSS variables, motion | `notes/styleguide/tailwind.md` |
+| Writing and naming tests, RTL patterns | `notes/styleguide/testing.md` |
+| File naming, import order, path aliases | `notes/styleguide/files-imports.md` |
+
+When introducing a pattern not covered: flag it, ask if it becomes a rule, add it before closing the PR.
+
 ## Skills
 
 Workflow skills live in `.claude/skills/` (next-conventions, tdd-flow, add-project, case-study, ship-check) — loaded on demand.

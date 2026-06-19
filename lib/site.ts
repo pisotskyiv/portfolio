@@ -15,8 +15,7 @@ export const siteConfig = {
   email: "vlad.pisotski@gmail.com",
   links: {
     github: "https://github.com/Pisotski",
-    // TODO: replace with real LinkedIn profile URL
-    linkedin: "https://www.linkedin.com/in/your-profile",
+    linkedin: "https://www.linkedin.com/in/vpisotski/",
     // TODO: drop the real resume PDF into /public/resume.pdf
     resume: "/resume.pdf",
   },
