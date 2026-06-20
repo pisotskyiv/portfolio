@@ -6,7 +6,7 @@ Personal portfolio site for an AI/LLM-focused full-stack engineer. The build pro
 
 ## Stack
 
-- **Next.js 15** (App Router) + **React 19** — server components first; client islands only where interaction demands.
+- **Next.js 16** (App Router) + **React 19** — server components first; client islands only where interaction demands.
 - **TypeScript** — strict.
 - **Tailwind CSS v4** — utility styling, dark/light via `prefers-color-scheme`.
 - **Vitest + React Testing Library** — data-integrity and component render/a11y tests.
