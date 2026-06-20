@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { GitHubIcon } from "@/components/ui/GitHubIcon";
 import Link from "next/link";
 import { projects } from "@/lib/projects";
 
@@ -70,10 +71,9 @@ export function Projects() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`View ${project.title} on GitHub`}
-                    className="inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-text focus-ring"
+                    className="group inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-text focus-ring"
                   >
-                    GitHub
-                    <ArrowUpRight size={14} aria-hidden="true" />
+                    <GitHubIcon size={13} className="text-accent transition-colors group-hover:text-accent-hover" />
                   </a>
                 )}
               </div>

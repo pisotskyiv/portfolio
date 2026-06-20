@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import clsx from "clsx";
+import { GitHubIcon } from "@/components/ui/GitHubIcon";
 import { siteConfig } from "@/lib/site";
 import { NavLink } from "@/components/ui/NavLink";
 
@@ -39,8 +40,8 @@ export function Nav() {
           <NavLink href="#work">Work</NavLink>
           <NavLink href="#about">About</NavLink>
           <NavLink href="#contact">Contact</NavLink>
-          <NavLink href={siteConfig.links.github} external>
-            GitHub
+          <NavLink href={siteConfig.links.github} external aria-label="GitHub">
+            <GitHubIcon size={15} className="text-accent transition-colors group-hover:text-accent-hover" />
           </NavLink>
         </div>
       </nav>
