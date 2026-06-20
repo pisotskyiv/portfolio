@@ -11,6 +11,62 @@ export type CaseStudy = {
 };
 
 export const caseStudies: Record<string, CaseStudy> = {
+  "langgraph-rag-citation-engine": {
+    slug: "langgraph-rag-citation-engine",
+    tldr: "Replaced a single-pass LangChain RAG pipeline with a stateful 4-node LangGraph that validates citations sentence-by-sentence before committing any answer. The legacy route produced incorrect or uncited responses in over 30% of sessions. Early benchmarks against the new graph show measurable improvement across retrieval precision, citation faithfulness, and answer correctness — evaluated via LLM-as-judge scoring in Langfuse.",
+    sections: [
+      {
+        id: "problem-context",
+        heading: "Problem & Context",
+        body: [
+          "PBA Chat is a RAG-based assistant for benefits navigators researching SNAP/FNS policy. Its core value proposition is grounded, cited answers — every claim must trace back to a retrieved policy document chunk. The legacy implementation was a linear LangChain chain: one retrieval pass, one LLM call, stream whatever came out.",
+          "More than 30% of responses were inaccurate or missing citations. The failure was structural. No validation step existed between generation and delivery. On longer conversations, the chain also dumped raw message history — including citation tokens and retrieved chunks — directly into the context window every turn, compounding errors as sessions grew.",
+        ],
+      },
+      {
+        id: "my-role",
+        heading: "My Role",
+        body: [
+          "A colleague conducted the initial LangGraph research. I designed the graph architecture, implemented all four nodes and conditional routing logic, wired up MongoDB checkpointing, and wrote the six-phase production roadmap the team is now executing.",
+          "I also own the evaluation infrastructure: a Locust benchmark script that replays real production conversations message-by-message, paired with LLM-as-judge evaluators in Langfuse measuring retrieval precision, citation faithfulness, and answer correctness.",
+        ],
+      },
+      {
+        id: "architecture",
+        heading: "Architecture",
+        body: [
+          "The graph has four nodes and two conditional edges. On each turn, a shouldSummarize edge checks whether human message count has reached 4. If so, the summarizeConversation node compresses all but the last 2 messages into a rolling summary using gpt-4o-mini, then removes them from state via LangGraph's RemoveMessage. The active message buffer stays small regardless of conversation length.",
+          "retrievalNode runs MMR search (k=10, fetchK=40) — up from basic vector search at k=5 — and rewrites raw user queries into self-contained questions before embedding. llmCall generates an answer with inline citation tokens. citationValidator then runs two-layer validation: a hallucination gate that immediately returns a no-info response if no valid citation IDs are present, followed by sentence-level checking that collects uncited sentences and routes back to llmCall with explicit correction instructions. Up to 2 retries are allowed.",
+          "A pendingAnswer field buffers each LLM output and is never committed to state until validation passes. Two MongoDB collections serve distinct purposes: checkpoints holds the AI's working memory (trimmed messages plus rolling summary), while chatMessages preserves the full uncut history for UI rendering.",
+        ],
+      },
+      {
+        id: "key-challenges",
+        heading: "Key Challenges",
+        body: [
+          "Keeping checkpoint state clean was the hardest problem. The summarization node had to exclude the current unanswered question from its prompt — including it caused the summary model to attempt an answer rather than summarize completed exchanges. The rolling summary prompt also required an explicit instruction to preserve prior summary content verbatim while appending new Q&A pairs. Without it, the model would compress and drop earlier topics on the second and third summarization cycles.",
+          "Citation validation introduced a subtle state management requirement: corrections and pendingAnswer must be transient per turn. All reducers in the state annotation use replace semantics — not append — so stale corrections from one retry cannot bleed into the next turn's state. Getting this right required inspecting MongoDB checkpoints at each graph node via a debug log during development.",
+        ],
+      },
+      {
+        id: "evaluation-infrastructure",
+        heading: "Evaluation Infrastructure",
+        body: [
+          "To measure the improvement, I built a Locust benchmark script (benchmark.py) in the scraper service. It pulls real conversations from the production database — sessions where QA testers exercised the chat — and replays them message-by-message against the graph route, simulating authentic multi-turn flow at scale.",
+          "Three LLM-as-judge evaluators run in Langfuse. Retrieval precision: do the retrieved chunks contain sufficient information to answer the query, scored 0–1 with chain-of-thought reasoning. Citation faithfulness: do the citations in the answer map accurately to what the chunks say. Answer correctness: is the generated response factually consistent with the retrieved context.",
+          "Results & benchmarks screenshots will be added once the evaluation suite completes.",
+        ],
+      },
+      {
+        id: "results-impact",
+        heading: "Results & Impact",
+        body: [
+          "The legacy route exceeded 30% inaccuracy under benchmark conditions. Benchmark runs against the graph route are in progress; final scores across all three evaluator dimensions will be added once the evaluation suite completes.",
+          "The six-phase roadmap produced from this work now drives the team's production hardening plan: null safety, PII redaction, adaptive retrieval, token streaming, full test coverage, and eventual deprecation of the legacy assistant route.",
+        ],
+      },
+    ],
+  },
   "ctd-rag-chatbot": {
     slug: "ctd-rag-chatbot",
     tldr: "Built retrieval-augmented generation infrastructure for clinical trial documentation at Code the Dream. Improved retrieval precision by 60% through modular vector store design and raised observability by 40% by wiring LLM-as-a-Judge scoring into Langfuse production dashboards.",

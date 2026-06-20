@@ -28,10 +28,16 @@ describe("Projects", () => {
     expect(screen.getByText("This Portfolio")).toBeInTheDocument();
   });
 
-  it("renders tech tags for first project", () => {
+  it("renders LangGraph RAG Citation Engine title", () => {
     render(<Projects />);
-    expect(screen.getByText("Next.js")).toBeInTheDocument();
-    expect(screen.getByText("MongoDB")).toBeInTheDocument();
+    expect(screen.getByText("LangGraph RAG Citation Engine")).toBeInTheDocument();
+  });
+
+  it("renders tech tags", () => {
+    render(<Projects />);
+    expect(screen.getAllByText("Next.js").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("MongoDB").length).toBeGreaterThan(0);
+    expect(screen.getByText("LangGraph")).toBeInTheDocument();
   });
 
   it("renders project descriptions", () => {
