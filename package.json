@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "gate": "npm run lint && npm run typecheck && npm test && npm run build",
+    "ship": "npm run gate && npm run test:e2e"
   },
   "dependencies": {
     "clsx": "^2.1.1",
