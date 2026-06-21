@@ -4,6 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 import { SchedulerCard } from "./SchedulerCard";
 import { availability } from "@/lib/availability";
 
+vi.mock("next-auth/react", () => ({
+  useSession: () => ({ data: null, status: "unauthenticated" }),
+  signIn: vi.fn(),
+}));
+
 describe("SchedulerCard", () => {
   it("renders all day abbreviations", () => {
     render(<SchedulerCard availability={availability} />);
@@ -39,6 +44,15 @@ describe("SchedulerCard", () => {
     render(<SchedulerCard availability={availability} onSlotClick={onSlotClick} />);
     await user.click(screen.getByRole("button", { name: /Monday at 9am/i }));
     expect(onSlotClick).toHaveBeenCalledWith("Monday", "09:00");
+  });
+
+  it("reveals the inline booking form when a slot is clicked without an override", async () => {
+    const user = userEvent.setup();
+    render(<SchedulerCard availability={availability} />);
+    await user.click(screen.getByRole("button", { name: /Monday at 9am/i }));
+    expect(
+      screen.getByRole("button", { name: /sign in with google/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders email link", () => {

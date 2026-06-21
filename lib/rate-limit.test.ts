@@ -64,3 +64,31 @@ describe("checkRateLimit", () => {
     expect(res.enforced).toBe(true);
   });
 });
+
+describe("checkBookingRateLimit", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    limitMock.mockReset();
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  });
+
+  it("fails open (allows, unenforced) when Upstash is not configured", async () => {
+    const { checkBookingRateLimit } = await import("./rate-limit");
+    const res = await checkBookingRateLimit("1.2.3.4");
+    expect(res.success).toBe(true);
+    expect(res.enforced).toBe(false);
+    expect(limitMock).not.toHaveBeenCalled();
+  });
+
+  it("blocks when the booking limit is exceeded", async () => {
+    process.env.UPSTASH_REDIS_REST_URL = "https://example.upstash.io";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "token";
+    limitMock.mockResolvedValue({ success: false, remaining: 0, limit: 5, reset: 1 });
+    const { checkBookingRateLimit } = await import("./rate-limit");
+    const res = await checkBookingRateLimit("1.2.3.4");
+    expect(res.success).toBe(false);
+    expect(res.enforced).toBe(true);
+    expect(limitMock).toHaveBeenCalledWith("1.2.3.4");
+  });
+});

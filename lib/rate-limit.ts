@@ -1,10 +1,12 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-// Public chat hits a paid LLM per request. Cap requests per client IP.
-// Tunable here; sliding window so the budget refills gradually, not in bursts.
-const LIMIT = 10;
+// Public, unauthenticated endpoints that cost money (a paid LLM per chat) or
+// write to a calendar (booking) are capped per client IP. Sliding window so the
+// budget refills gradually, not in bursts. Tunable here.
 const WINDOW = "1 d" as const;
+const CHAT_LIMIT = 10;
+const BOOKING_LIMIT = 5;
 
 export interface RateLimitResult {
   success: boolean;
@@ -16,38 +18,53 @@ export interface RateLimitResult {
   enforced: boolean;
 }
 
-// undefined = not yet resolved, null = disabled (no Upstash env present).
-let limiter: Ratelimit | null | undefined;
+// One memoized limiter per prefix. A stored `null` means Upstash is disabled
+// (no env present) — we fail open for that prefix.
+const limiters = new Map<string, Ratelimit | null>();
 
-function getLimiter(): Ratelimit | null {
-  if (limiter !== undefined) return limiter;
+function getLimiter(prefix: string, limit: number): Ratelimit | null {
+  const cached = limiters.get(prefix);
+  if (cached !== undefined) return cached;
 
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!url || !token) {
     console.warn(
-      "[rate-limit] Upstash not configured; chat is unmetered (fail-open).",
+      `[rate-limit] Upstash not configured; ${prefix} is unmetered (fail-open).`,
     );
-    limiter = null;
+    limiters.set(prefix, null);
     return null;
   }
 
-  limiter = new Ratelimit({
+  const limiter = new Ratelimit({
     redis: new Redis({ url, token }),
-    limiter: Ratelimit.slidingWindow(LIMIT, WINDOW),
+    limiter: Ratelimit.slidingWindow(limit, WINDOW),
     analytics: false,
-    prefix: "ratelimit:chat",
+    prefix,
   });
+  limiters.set(prefix, limiter);
   return limiter;
 }
 
-export async function checkRateLimit(
+async function check(
+  prefix: string,
+  max: number,
   identifier: string,
 ): Promise<RateLimitResult> {
-  const l = getLimiter();
+  const l = getLimiter(prefix, max);
   if (!l) {
-    return { success: true, remaining: LIMIT, limit: LIMIT, reset: 0, enforced: false };
+    return { success: true, remaining: max, limit: max, reset: 0, enforced: false };
   }
   const { success, remaining, limit, reset } = await l.limit(identifier);
   return { success, remaining, limit, reset, enforced: true };
+}
+
+/** Per-IP limit for the public chat endpoint. */
+export function checkRateLimit(identifier: string): Promise<RateLimitResult> {
+  return check("ratelimit:chat", CHAT_LIMIT, identifier);
+}
+
+/** Stricter per-IP limit for the booking write endpoint. */
+export function checkBookingRateLimit(identifier: string): Promise<RateLimitResult> {
+  return check("ratelimit:book", BOOKING_LIMIT, identifier);
 }
