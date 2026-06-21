@@ -24,25 +24,21 @@ export const DAY_META = [
   { day: "Saturday", short: "Sat" },
 ] as const;
 
+// General availability: 12-3pm PT, three one-hour slots. The live freebusy pass
+// in buildWeek drops any of these that collide with a real calendar event.
+const AFTERNOON: TimeSlot[] = [
+  { time: "12:00", label: "12pm" },
+  { time: "13:00", label: "1pm" },
+  { time: "14:00", label: "2pm" },
+];
+
 // Single source of truth for candidate slots, keyed by day-of-week (0=Sun..6=Sat).
 export const WEEKLY_SLOTS: Record<number, TimeSlot[]> = {
-  1: [
-    { time: "09:00", label: "9am" },
-    { time: "10:00", label: "10am" },
-    { time: "14:00", label: "2pm" },
-  ],
-  3: [
-    { time: "09:00", label: "9am" },
-    { time: "10:00", label: "10am" },
-    { time: "11:00", label: "11am" },
-    { time: "14:00", label: "2pm" },
-  ],
-  4: [
-    { time: "09:00", label: "9am" },
-    { time: "10:00", label: "10am" },
-    { time: "14:00", label: "2pm" },
-    { time: "15:00", label: "3pm" },
-  ],
+  1: AFTERNOON,
+  2: AFTERNOON,
+  3: AFTERNOON,
+  4: AFTERNOON,
+  5: AFTERNOON,
 };
 
 // Dateless Mon-Fri view derived from WEEKLY_SLOTS — used as a fixture/sample.

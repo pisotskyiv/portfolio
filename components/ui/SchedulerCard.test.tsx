@@ -22,34 +22,35 @@ describe("SchedulerCard", () => {
   it("renders available time slots as buttons", () => {
     render(<SchedulerCard availability={availability} />);
     expect(
-      screen.getByRole("button", { name: /Monday at 9am/i }),
+      screen.getByRole("button", { name: /Monday at 12pm/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Wednesday at 11am/i }),
+      screen.getByRole("button", { name: /Wednesday at 1pm/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Thursday at 3pm/i }),
+      screen.getByRole("button", { name: /Friday at 2pm/i }),
     ).toBeInTheDocument();
   });
 
-  it("shows dash for days with no slots", () => {
-    render(<SchedulerCard availability={availability} />);
-    const dashes = screen.getAllByText("—");
-    expect(dashes.length).toBeGreaterThanOrEqual(2);
+  it("shows dash for a day with no slots", () => {
+    render(
+      <SchedulerCard availability={[{ day: "Monday", short: "Mon", slots: [] }]} />,
+    );
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("calls onSlotClick with day and time when slot clicked", async () => {
     const user = userEvent.setup();
     const onSlotClick = vi.fn();
     render(<SchedulerCard availability={availability} onSlotClick={onSlotClick} />);
-    await user.click(screen.getByRole("button", { name: /Monday at 9am/i }));
-    expect(onSlotClick).toHaveBeenCalledWith("Monday", "09:00");
+    await user.click(screen.getByRole("button", { name: /Monday at 12pm/i }));
+    expect(onSlotClick).toHaveBeenCalledWith("Monday", "12:00");
   });
 
   it("reveals the inline booking form when a slot is clicked without an override", async () => {
     const user = userEvent.setup();
     render(<SchedulerCard availability={availability} />);
-    await user.click(screen.getByRole("button", { name: /Monday at 9am/i }));
+    await user.click(screen.getByRole("button", { name: /Monday at 12pm/i }));
     expect(
       screen.getByRole("button", { name: /sign in with google/i }),
     ).toBeInTheDocument();
