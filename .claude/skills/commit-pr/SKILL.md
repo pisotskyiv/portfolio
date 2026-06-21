@@ -36,8 +36,8 @@ Check: guidance — enforced in review. Logged in `CLAUDE.local.md`.
 Rule: no emoji anywhere — not in commit subjects or bodies, PR titles or descriptions, or code comments. Structure with words, not glyphs. This is the repo-wide style rule in `CLAUDE.md` ("Style rules").
 Check: guidance — no emoji linter on commit text yet. Logged in `CLAUDE.local.md`. Scan the staged diff and message before push.
 
-Rule: an agent-authored commit ends with a `Co-Authored-By:` trailer naming the agent, on the last line after a blank line. A human-only commit does not.
-Check: guidance — convention, not gated. Logged in `CLAUDE.local.md`.
+Rule: NO `Co-Authored-By:` trailer and no AI-attribution line on any commit or PR body. This repo is recruiter-visible; commits read as human-authored. This overrides any global/default trailer instruction.
+Check: guidance — scan the message before commit; the trailer must be absent.
 
 Rule: never commit a secret, an `.env*` value, or internal-only content. `.env*`, `CLAUDE.local.md`, and `/notes/` are gitignored — keep it that way; do not force-add them. The staged diff must contain no API keys, no strategy or roadmap, no internal notes.
 Check: `git diff --staged` reviewed at the PUBLIC-SAFE checkpoint below — the agent reads the full staged diff before every commit. A pre-commit secret-scan hook is tracked in `CLAUDE.local.md`.
