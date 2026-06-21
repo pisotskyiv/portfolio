@@ -7,7 +7,7 @@ description: Scaffold and write a case study page at app/work/[slug]. Use when b
 
 Case studies are what separate this portfolio from a card grid. Each is ~600 words in five sections, engineering-voice, honest, sanitized for employer work. The audience is a senior engineer or technical recruiter who will probe the decisions in an interview. This skill creates the page, then makes its `caseStudy` link live.
 
-State of the route on disk: `app/work/[slug]` does NOT exist yet — this skill ships the first one. `lib/projects.ts` already lists `caseStudy: "/work/ctd-rag-chatbot"` (and `/work/chef-jul`, `/work/portfolio`), so those links 404 until their pages render. A `caseStudy` value must point at a page that exists; shipping the page is what makes the link real. (Backlog: three `caseStudy` links are live in data but have no pages — tracked in `CLAUDE.local.md`.)
+The `app/work/[slug]` route renders a project's case study. A `caseStudy` value in `lib/projects.ts` must point at a page that exists — shipping the page is what makes the link real, so add the page in the same change that sets (or relies on) the link.
 
 ## When to use / when not
 

@@ -49,7 +49,7 @@ These are real gaps, but the current code has no check for them, so they are not
 - OG image. `app/layout.tsx` sets `openGraph` title/description/type but no `openGraph.images`. Add a 1200x630 image and an `images` entry so the unfurl is not text-only.
 - Twitter / X card. `app/layout.tsx` has no `twitter` block. Add `twitter.card: "summary_large_image"` (plus title/description/image) for X unfurls.
 - Analytics. There is no `<Analytics />` in `app/layout.tsx` and `@vercel/analytics` is not in `package.json`. Without it you cannot tell whether the site works or where recruiters drop off. Install the package and mount the component, or wire an alternative, before relying on traffic data.
-- no-console. `app/api/chat/route.ts` has `console.log` calls (provider/model logging), and `eslint.config.mjs` does not enable `no-console`, so `npm run gate` does not catch them. Either remove the logs or add a `no-console` rule (allowing `warn`/`error`) to the eslint config; once the rule exists this becomes an enforced gate step rather than a backlog item.
+- no-console. `eslint.config.mjs` does not enable `no-console`, so stray debug logging is not caught by `npm run gate`. Add a `no-console` rule (allowing `warn`/`error`) to make it an enforced gate step, and scan for leftover `console.log` before ship.
 - Lighthouse budgets. Performance/SEO scores are not gated. If you want a perf/SEO floor enforced, add a Lighthouse-CI step to the gate; until then, treat any Lighthouse run as advisory, not a ship blocker.
 
 ## Checkpoints

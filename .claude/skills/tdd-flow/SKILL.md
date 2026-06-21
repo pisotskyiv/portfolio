@@ -50,10 +50,10 @@ guidance: coverage enforcement. There is no coverage tooling and no tests-exist 
 | `components/ui/Button.tsx` | `components/ui/Button.test.tsx` | exists — worked example for a component |
 | `components/sections/Hero.tsx` | `components/sections/Hero.test.tsx` | exists |
 | `lib/projects.ts` | `lib/projects.test.ts` | exists — worked example for a data module (below) |
-| `lib/availability.ts` | `lib/availability.test.ts` | expected, missing — backlog in `CLAUDE.local.md` |
-| `app/api/chat/route.ts` | `app/api/chat/route.test.ts` | expected, missing — backlog in `CLAUDE.local.md` |
+| `lib/availability.ts` | `lib/availability.test.ts` | expected, missing — write it when you touch the file |
+| `app/api/chat/route.ts` | `app/api/chat/route.test.ts` | exists — worked example for a route handler |
 
-The two `expected, missing` rows are the file-placement contract, not claims of present coverage. When you touch either source file, write its test as the first step.
+The `expected, missing` row is the file-placement contract, not a claim of present coverage. When you touch that source file, write its test as the first step.
 
 ## Worked example — data module (static, no sad path)
 
