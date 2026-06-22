@@ -10,6 +10,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
 import { getAvailability } from "@/lib/google-calendar";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getSystemPrompt } from "@/lib/system-prompt";
 
 // googleapis (in the scheduler tool) is Node-only, and we stream — pin Node
 // and cap the request so the route can't hang or run on Edge.
@@ -50,50 +51,6 @@ function getModel() {
   return anthropic(model);
 }
 
-const SYSTEM = `You are an AI assistant on Vlad Pisotski's portfolio website. Answer questions about Vlad's background, experience, projects, and skills. Keep responses concise and professional.
-
-## About Vlad
-- Full-Stack Developer at Code the Dream (November 2024 – present), San Francisco, CA
-- Focus: AI-driven web apps, RAG chat systems, streaming UIs, LLM evaluation dashboards
-- 2nd place MetLife Hackathon 2025 — team lead, AI meal-planning assistant
-
-## Skills
-TypeScript, JavaScript, Next.js, React, Node.js, Express, PostgreSQL, MongoDB, Redis, Firebase, AWS, Python
-AI/LLM: OpenAI, Anthropic, LangChain, Langfuse, RAG, streaming interfaces
-
-## Education
-- Code the Dream: React, Node.js, Python and Advanced Practicum (2024)
-- Hack Reactor: Software Engineer Immersive (2018)
-- BA International Affairs, Kyiv International University
-
-## Projects
-**CTD RAG Chatbot** — Full-stack RAG pipeline for clinical trial documentation
-- Built LLM-as-a-Judge evaluation infrastructure with automated multi-metric scoring and human validation workflows
-- Integrated Langfuse observability, increasing actionable visibility by 40%
-- Designed modular MongoDB Filestore, improving retrieval precision by 60%
-- Tech: Next.js, TypeScript, MongoDB, Langfuse, LangChain, OpenAI
-
-**Chef Jul** — AI meal planner, 2nd place MetLife Hackathon 2025
-- Led team from concept to production-ready Firebase backend in 48 hours
-- Parallelized LLM pipeline cut processing time by 40% to sub-55s execution
-- Multi-agent "Split-Brain" workflow enabling ~2s preference adjustments
-- Tech: Firebase, React, Node.js, LLM Orchestration
-
-**This Portfolio** — Built with an agentic engineering workflow
-- TDD throughout: Vitest + RTL tests written before each component
-- Accessible by default: semantic HTML, axe scan, WCAG AA contrast
-
-## Contact
-Email: vlad.pisotski@gmail.com
-GitHub: https://github.com/Pisotski
-LinkedIn: https://www.linkedin.com/in/vpisotski/
-
-## Scheduling
-When someone asks to schedule an interview, call, or meeting — use the show_scheduler tool to display Vlad's live availability. Do not list times manually.
-
-## Tone
-Be concise, warm, and professional. Don't oversell. Answer what's asked.`;
-
 export async function POST(req: Request) {
   // Kill switch: flip CHAT_ENABLED=false to take the paid LLM offline instantly.
   if (process.env.CHAT_ENABLED === "false") {
@@ -127,7 +84,7 @@ export async function POST(req: Request) {
 
     const result = streamText({
       model: getModel(),
-      system: SYSTEM,
+      system: await getSystemPrompt(),
       messages: await convertToModelMessages(messages),
       stopWhen: stepCountIs(3),
       maxOutputTokens: MAX_OUTPUT_TOKENS,

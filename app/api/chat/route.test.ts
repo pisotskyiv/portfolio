@@ -8,6 +8,9 @@ vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn() }));
 vi.mock("@/lib/google-calendar", () => ({
   getAvailability: vi.fn().mockResolvedValue([]),
 }));
+vi.mock("@/lib/system-prompt", () => ({
+  getSystemPrompt: vi.fn().mockResolvedValue("SYSTEM"),
+}));
 vi.mock("@ai-sdk/anthropic", () => ({ createAnthropic: () => () => "model" }));
 vi.mock("@ai-sdk/openai", () => ({ createOpenAI: () => () => "model" }));
 vi.mock("ai", () => ({
@@ -98,6 +101,7 @@ describe("POST /api/chat", () => {
     expect(streamTextMock).toHaveBeenCalledOnce();
     expect(streamTextMock.mock.calls[0][0]).toMatchObject({
       maxOutputTokens: 800,
+      system: "SYSTEM",
     });
   });
 
