@@ -8,9 +8,11 @@ describe("Projects", () => {
     expect(document.querySelector("#work")).toBeInTheDocument();
   });
 
-  it("renders Selected Work heading", () => {
+  it("renders Selected Work as a level-2 heading", () => {
     render(<Projects />);
-    expect(screen.getByText(/selected work/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /selected work/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders CTD RAG Chatbot title", () => {

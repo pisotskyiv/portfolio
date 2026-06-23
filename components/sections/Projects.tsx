@@ -6,12 +6,12 @@ export function Projects() {
   return (
     <section id="work" aria-labelledby="work-heading" className="section">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
-        <p
+        <h2
           id="work-heading"
           className="eyebrow"
         >
           Selected Work
-        </p>
+        </h2>
         <ul className="flex flex-col gap-4" role="list">
           {projects.map((project) => (
             <li
