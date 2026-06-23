@@ -53,6 +53,9 @@ async function check(
 ): Promise<RateLimitResult> {
   const l = getLimiter(prefix, max);
   if (!l) {
+    if (process.env.VERCEL_ENV === "production") {
+      return { success: false, remaining: 0, limit: max, reset: 0, enforced: false };
+    }
     return { success: true, remaining: max, limit: max, reset: 0, enforced: false };
   }
   const { success, remaining, limit, reset } = await l.limit(identifier);

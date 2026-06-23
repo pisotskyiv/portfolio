@@ -23,12 +23,22 @@ describe("checkRateLimit", () => {
     limitMock.mockReset();
     delete process.env.UPSTASH_REDIS_REST_URL;
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    delete process.env.VERCEL_ENV;
   });
 
-  it("fails open (allows, unenforced) when Upstash is not configured", async () => {
+  it("fails open (allows, unenforced) when Upstash is not configured outside production", async () => {
     const { checkRateLimit } = await import("./rate-limit");
     const res = await checkRateLimit("1.2.3.4");
     expect(res.success).toBe(true);
+    expect(res.enforced).toBe(false);
+    expect(limitMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed (blocks, unenforced) in production when Upstash is not configured", async () => {
+    process.env.VERCEL_ENV = "production";
+    const { checkRateLimit } = await import("./rate-limit");
+    const res = await checkRateLimit("1.2.3.4");
+    expect(res.success).toBe(false);
     expect(res.enforced).toBe(false);
     expect(limitMock).not.toHaveBeenCalled();
   });
@@ -71,12 +81,22 @@ describe("checkBookingRateLimit", () => {
     limitMock.mockReset();
     delete process.env.UPSTASH_REDIS_REST_URL;
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    delete process.env.VERCEL_ENV;
   });
 
-  it("fails open (allows, unenforced) when Upstash is not configured", async () => {
+  it("fails open (allows, unenforced) when Upstash is not configured outside production", async () => {
     const { checkBookingRateLimit } = await import("./rate-limit");
     const res = await checkBookingRateLimit("1.2.3.4");
     expect(res.success).toBe(true);
+    expect(res.enforced).toBe(false);
+    expect(limitMock).not.toHaveBeenCalled();
+  });
+
+  it("fails closed (blocks, unenforced) in production when Upstash is not configured", async () => {
+    process.env.VERCEL_ENV = "production";
+    const { checkBookingRateLimit } = await import("./rate-limit");
+    const res = await checkBookingRateLimit("1.2.3.4");
+    expect(res.success).toBe(false);
     expect(res.enforced).toBe(false);
     expect(limitMock).not.toHaveBeenCalled();
   });
