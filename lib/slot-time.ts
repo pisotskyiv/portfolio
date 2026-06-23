@@ -11,13 +11,24 @@ export const SLOT_MS = 60 * 60 * 1000;
  * The next `count` business days (Mon-Fri) starting from `now` in LA time,
  * as UTC date strings. Mid-week this rolls forward over the weekend rather
  * than showing dead past columns. `now` is injectable for deterministic tests.
+ *
+ * When `weekOffset > 0`, snaps to the Monday of the Nth week ahead instead of
+ * rolling from today — so callers get a clean Mon-Fri view of a future week.
  */
 export function getBusinessDays(
   now: Date = new Date(),
   count = 5,
+  weekOffset = 0,
 ): Array<{ dateStr: string; dow: number }> {
   const laDateStr = now.toLocaleDateString("en-CA", { timeZone: TIMEZONE });
   const cursor = new Date(`${laDateStr}T12:00:00Z`);
+
+  if (weekOffset > 0) {
+    const dow = cursor.getUTCDay(); // 0=Sun..6=Sat
+    const daysSinceMonday = dow === 0 ? 6 : dow - 1;
+    cursor.setUTCDate(cursor.getUTCDate() - daysSinceMonday + weekOffset * 7);
+  }
+
   const out: Array<{ dateStr: string; dow: number }> = [];
   while (out.length < count) {
     const dow = cursor.getUTCDay();
@@ -70,8 +81,9 @@ export function buildWeek(
   weeklySlots: Record<number, TimeSlot[]>,
   dayMeta: ReadonlyArray<{ day: string; short: string }>,
   busy: Array<{ start: string; end: string }> | null,
+  weekOffset = 0,
 ): DaySchedule[] {
-  return getBusinessDays(now).map(({ dateStr, dow }) => {
+  return getBusinessDays(now, 5, weekOffset).map(({ dateStr, dow }) => {
     const slots = (weeklySlots[dow] ?? []).filter((slot) => {
       const start = slotToUTC(dateStr, slot.time);
       const end = new Date(start.getTime() + SLOT_MS);

@@ -4,11 +4,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // "googleapis" (network). Stub both so the booking logic is unit-testable.
 vi.mock("server-only", () => ({}));
 
-const freebusyQuery = vi.fn();
-const eventsInsert = vi.fn();
+// vi.hoisted: the googleapis factory reads `jwtCtor` eagerly (it's a property
+// value, not inside the lazy calendar() arrow), so it must exist before the
+// hoisted vi.mock runs.
+const { freebusyQuery, eventsInsert, jwtCtor } = vi.hoisted(() => ({
+  freebusyQuery: vi.fn(),
+  eventsInsert: vi.fn(),
+  jwtCtor: vi.fn(),
+}));
 vi.mock("googleapis", () => ({
   google: {
-    auth: { JWT: vi.fn() },
+    auth: { JWT: jwtCtor },
     calendar: () => ({
       freebusy: { query: freebusyQuery },
       events: { insert: eventsInsert },
@@ -45,12 +51,29 @@ describe("bookSlot", () => {
     expect(arg.calendarId).toBe("primary-cal");
     expect(arg.requestBody.start.dateTime).toBe("2030-01-15T17:00:00.000Z");
     expect(arg.requestBody.end.dateTime).toBe("2030-01-15T18:00:00.000Z");
-    expect(arg.requestBody.attendees).toEqual([
-      { email: "jane@example.com", displayName: "Jane Recruiter" },
-    ]);
+    // No `attendees`: a service account on a personal calendar can't invite
+    // without DWD, and including them fails the insert. The booker is captured
+    // in the description instead.
+    expect(arg.requestBody.attendees).toBeUndefined();
+    expect(arg.requestBody.description).toContain("jane@example.com");
 
     expect(result.start).toBe("2030-01-15T17:00:00.000Z");
     expect(result.addToCalendarLink).toContain("action=TEMPLATE");
+  });
+
+  it("requests a scope set covering both the freebusy precheck and insert", async () => {
+    // freebusy.query 403s under calendar.events alone, so the JWT must also
+    // carry a read scope (or full calendar). Regression lock for that bug.
+    await bookSlot({ ...VALID, now: BEFORE });
+    const { scopes } = jwtCtor.mock.calls[0][0] as { scopes: string[] };
+    expect(scopes).toContain("https://www.googleapis.com/auth/calendar.events");
+    expect(
+      scopes.some(
+        (s) =>
+          s === "https://www.googleapis.com/auth/calendar" ||
+          s === "https://www.googleapis.com/auth/calendar.readonly",
+      ),
+    ).toBe(true);
   });
 
   it("rejects a slot in the past without touching the calendar", async () => {

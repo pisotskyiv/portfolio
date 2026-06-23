@@ -81,6 +81,28 @@ describe("getBusinessDays", () => {
     const days = getBusinessDays(new Date("2026-06-20T12:00:00Z")); // a Saturday
     expect(days[0].dateStr).toBe("2026-06-22"); // following Monday
   });
+
+  it("snaps to Mon-Fri of next calendar week when weekOffset=1 (from Thursday)", () => {
+    const days = getBusinessDays(new Date("2026-06-18T12:00:00Z"), 5, 1); // Thursday
+    expect(days.map((d) => d.dateStr)).toEqual([
+      "2026-06-22", // Mon
+      "2026-06-23", // Tue
+      "2026-06-24", // Wed
+      "2026-06-25", // Thu
+      "2026-06-26", // Fri
+    ]);
+  });
+
+  it("snaps to Mon-Fri two weeks ahead when weekOffset=2", () => {
+    const days = getBusinessDays(new Date("2026-06-15T12:00:00Z"), 5, 2); // Monday
+    expect(days.map((d) => d.dateStr)).toEqual([
+      "2026-06-29",
+      "2026-06-30",
+      "2026-07-01",
+      "2026-07-02",
+      "2026-07-03",
+    ]);
+  });
 });
 
 describe("buildWeek", () => {

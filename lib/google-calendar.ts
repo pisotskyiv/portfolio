@@ -7,8 +7,9 @@ import { slotWindow, googleCalendarLink } from "./booking";
 
 export async function getAvailability(
   now: Date = new Date(),
+  weekOffset = 0,
 ): Promise<DaySchedule[]> {
-  const days = getBusinessDays(now);
+  const days = getBusinessDays(now, 5, weekOffset);
 
   try {
     const auth = new google.auth.JWT({
@@ -36,13 +37,13 @@ export async function getAvailability(
       (c) => (c.busy ?? []) as Array<{ start: string; end: string }>,
     );
 
-    return buildWeek(now, WEEKLY_SLOTS, DAY_META, busyBlocks);
+    return buildWeek(now, WEEKLY_SLOTS, DAY_META, busyBlocks, weekOffset);
   } catch (err) {
     console.error(
       "[availability] calendar fetch failed; serving static fallback",
       err,
     );
-    return buildWeek(now, WEEKLY_SLOTS, DAY_META, null);
+    return buildWeek(now, WEEKLY_SLOTS, DAY_META, null, weekOffset);
   }
 }
 
@@ -78,8 +79,9 @@ export interface BookSlotInput {
  * a double-book race. Throws BookingError("past") or BookingError("taken") for
  * client-recoverable cases; other failures propagate as raw errors.
  *
- * The service account cannot email an invite from a personal Gmail calendar
- * (needs Workspace domain-wide delegation), so the attendee is recorded for the
+ * The service account cannot invite attendees from a personal Gmail calendar
+ * (needs Workspace domain-wide delegation — and passing `attendees` at all makes
+ * the insert fail), so the booker is recorded in the event description for the
  * owner's reference and the recruiter self-adds via `addToCalendarLink`.
  */
 export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
@@ -92,7 +94,13 @@ export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
   const auth = new google.auth.JWT({
     email: process.env.GOOGLE_CLIENT_EMAIL,
     key: (process.env.GOOGLE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
-    scopes: ["https://www.googleapis.com/auth/calendar.events"],
+    // events.insert needs calendar.events; the freebusy precheck below is NOT
+    // covered by that scope and 403s ("insufficient authentication scopes")
+    // without a read scope, so request both.
+    scopes: [
+      "https://www.googleapis.com/auth/calendar.events",
+      "https://www.googleapis.com/auth/calendar.readonly",
+    ],
   });
   const cal = google.calendar({ version: "v3", auth });
   const calendarId = process.env.GOOGLE_CALENDAR_ID_PERSONAL ?? "primary";
@@ -121,7 +129,6 @@ export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
       description: details,
       start: { dateTime: start.toISOString() },
       end: { dateTime: end.toISOString() },
-      attendees: [{ email: input.email, displayName: input.name }],
     },
   });
 
