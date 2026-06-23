@@ -34,7 +34,7 @@ export function Toast({
       initial={{ opacity: 0, y: offset }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: offset }}
-      className="fixed bottom-4 left-4 z-70 flex max-w-xs items-start gap-2 rounded-lg border border-border bg-bg px-3 py-2 text-[12px] text-text shadow-lg"
+      className="glow-pulse fixed bottom-4 left-4 right-4 z-70 flex max-w-[calc(100vw-2rem)] items-start gap-2 rounded-lg border border-border bg-bg px-3 py-2 text-[12px] text-text sm:right-auto sm:max-w-xs"
     >
       <Icon
         className={variant === "success" ? "text-accent" : "text-muted"}

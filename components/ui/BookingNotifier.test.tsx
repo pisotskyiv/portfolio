@@ -44,17 +44,15 @@ describe("BookingNotifier", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("toasts a success with an add-to-calendar link and instructs the visitor to act", () => {
+  it("toasts a success with just the confirmation, no calendar link", () => {
     render(<BookingNotifier />);
     emit({ status: "success", when: "Wed Jun 24, 12pm PT", link: "https://cal/x" });
 
     const toast = screen.getByRole("status");
-    expect(toast).toHaveTextContent(/wed jun 24, 12pm pt/i);
-    expect(toast).toHaveTextContent(/add it to your calendar/i);
-    expect(screen.getByRole("link", { name: /add to calendar/i })).toHaveAttribute(
-      "href",
-      "https://cal/x",
-    );
+    expect(toast).toHaveTextContent(/confirmed for wed jun 24, 12pm pt/i);
+    expect(toast).not.toHaveTextContent(/add it to your calendar/i);
+    // The booking tab finalizes the calendar; the toast carries no action link.
+    expect(screen.queryByRole("link", { name: /add to calendar/i })).toBeNull();
   });
 
   it("toasts a failure with a LinkedIn fallback link", () => {
@@ -80,14 +78,14 @@ describe("BookingNotifier", () => {
     expect(unsubscribe).toHaveBeenCalled();
   });
 
-  it("success toast does not auto-dismiss — visitor must act", () => {
+  it("success toast auto-dismisses after its timeout", () => {
     vi.useFakeTimers();
     render(<BookingNotifier />);
     emit({ status: "success", when: "Wed Jun 24, 12pm PT", link: "https://cal/x" });
 
     expect(screen.getByRole("status")).toBeInTheDocument();
-    act(() => vi.advanceTimersByTime(30000));
-    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(6001));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("error toast auto-dismisses after 8 s", () => {
