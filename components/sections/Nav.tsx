@@ -30,7 +30,7 @@ export function Nav() {
       >
         <Link
           href="/"
-          aria-label="Vlad Pisotski"
+          aria-label="Vlad Pisotskyi"
           className="font-bold text-accent transition-colors hover:text-accent-hover focus-ring"
         >
           VP

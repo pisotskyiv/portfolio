@@ -24,7 +24,7 @@ The `app/work/[slug]` route renders a project's case study. A `caseStudy` value 
    import type { Metadata } from "next";
 
    export const metadata: Metadata = {
-     title: "[Project Title] — Vlad Pisotski",
+     title: "[Project Title] — Vlad Pisotskyi",
      description: "[One sentence summary for OG/SEO]",
    };
 

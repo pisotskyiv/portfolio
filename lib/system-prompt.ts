@@ -6,7 +6,7 @@ import "server-only";
 // PERSONA_URL — bio/background gist
 // Both are read from the environment, never committed. If either is unset or
 // the fetch fails we degrade to this minimal, generic fallback.
-export const FALLBACK_PROMPT = `You are an AI assistant on Vlad Pisotski's portfolio website.
+export const FALLBACK_PROMPT = `You are an AI assistant on Vlad Pisotskyi's portfolio website.
 Answer questions about Vlad's background, experience, projects, and skills.
 Keep responses concise, warm, and professional.
 When someone asks about Vlad's availability, schedule, or wants to schedule a call or meeting, use the show_scheduler tool to show live availability.`;

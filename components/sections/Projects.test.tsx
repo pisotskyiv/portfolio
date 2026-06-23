@@ -83,7 +83,7 @@ describe("Projects", () => {
     render(<Projects />);
     expect(
       screen.getByRole("link", { name: /view this portfolio on github/i }),
-    ).toHaveAttribute("href", "https://github.com/Pisotski/portfolio");
+    ).toHaveAttribute("href", "https://github.com/vlad-pisotskyi/portfolio");
   });
 
   it("does not render a github link for CTD RAG chatbot", () => {

@@ -26,7 +26,7 @@ describe("Nav", () => {
   it("shows site name as a link", () => {
     render(<Nav />);
     expect(
-      screen.getByRole("link", { name: "Vlad Pisotski" }),
+      screen.getByRole("link", { name: "Vlad Pisotskyi" }),
     ).toBeInTheDocument();
   });
 

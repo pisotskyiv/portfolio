@@ -53,7 +53,7 @@ export function Hero() {
           </div>
         </div>
         <div className="hidden lg:block">
-          <FragmentedPortraitClient src="/portrait.jpg" alt="Vlad Pisotski" />
+          <FragmentedPortraitClient src="/portrait.jpg" alt="Vlad Pisotskyi" />
         </div>
       </div>
     </section>

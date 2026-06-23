@@ -6,7 +6,7 @@ test.describe("Home page", () => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Main navigation" });
     await expect(page.getByRole("banner")).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Vlad Pisotski" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Vlad Pisotskyi" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Work" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Contact" })).toBeVisible();
@@ -21,7 +21,7 @@ test.describe("Home page", () => {
   test("hero shows name heading and role", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: /Vlad Pisotski/i }),
+      page.getByRole("heading", { name: /Vlad Pisotskyi/i }),
     ).toBeVisible();
     await expect(page.getByText(/Software Engineer/i).first()).toBeVisible();
   });
@@ -74,7 +74,7 @@ test.describe("Home page — responsive", () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: /Vlad Pisotski/i }),
+      page.getByRole("heading", { name: /Vlad Pisotskyi/i }),
     ).toBeVisible();
   });
 

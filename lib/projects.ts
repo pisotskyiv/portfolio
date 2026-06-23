@@ -58,7 +58,7 @@ export const projects: Project[] = [
       "Error-before-happy-path convention: error.tsx and loading.tsx defined before each feature to catch silent failures early.",
     ],
     tech: ["Next.js 16", "TypeScript", "Tailwind v4", "Vitest", "Playwright", "GitHub Actions"],
-    github: "https://github.com/Pisotski/portfolio",
+    github: "https://github.com/vlad-pisotskyi/portfolio",
     caseStudy: "/work/portfolio",
   },
 ];
