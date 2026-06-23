@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { ContactFallback } from "./ContactFallback";
 import { publishBookingResult } from "@/lib/booking-broadcast";
@@ -33,14 +33,6 @@ export function BookingPanel({
   const [phase, setPhase] = useState<Phase>("idle");
   const [link, setLink] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    if (phase !== "done" || !link) return;
-    const timer = setTimeout(() => {
-      window.close();
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [phase, link]);
 
   if (!signedIn) {
     return (
@@ -91,14 +83,17 @@ export function BookingPanel({
 
   if (phase === "done" && link) {
     return (
-      <a
-        href={link}
-        target="_blank"
-        rel="noreferrer"
-        className="text-sm text-accent hover:underline focus-ring"
-      >
-        Add to your calendar
-      </a>
+      <div className="flex flex-col gap-2 text-sm text-text">
+        <p>Confirmed on our end. Add it to your calendar to lock it in:</p>
+        <a
+          href={link}
+          target="_blank"
+          rel="noreferrer"
+          className="text-accent hover:underline focus-ring"
+        >
+          Add to your Google Calendar
+        </a>
+      </div>
     );
   }
 

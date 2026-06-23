@@ -44,12 +44,13 @@ describe("BookingNotifier", () => {
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("toasts a success with an add-to-calendar link", () => {
+  it("toasts a success with an add-to-calendar link and instructs the visitor to act", () => {
     render(<BookingNotifier />);
     emit({ status: "success", when: "Wed Jun 24, 12pm PT", link: "https://cal/x" });
 
     const toast = screen.getByRole("status");
     expect(toast).toHaveTextContent(/wed jun 24, 12pm pt/i);
+    expect(toast).toHaveTextContent(/add it to your calendar/i);
     expect(screen.getByRole("link", { name: /add to calendar/i })).toHaveAttribute(
       "href",
       "https://cal/x",
@@ -79,14 +80,14 @@ describe("BookingNotifier", () => {
     expect(unsubscribe).toHaveBeenCalled();
   });
 
-  it("success toast auto-dismisses after 10 s", () => {
+  it("success toast does not auto-dismiss — visitor must act", () => {
     vi.useFakeTimers();
     render(<BookingNotifier />);
     emit({ status: "success", when: "Wed Jun 24, 12pm PT", link: "https://cal/x" });
 
     expect(screen.getByRole("status")).toBeInTheDocument();
-    act(() => vi.advanceTimersByTime(10001));
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(30000));
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("error toast auto-dismisses after 8 s", () => {

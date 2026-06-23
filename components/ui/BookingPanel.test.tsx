@@ -1,4 +1,4 @@
-import { render, screen, act, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { BookingPanel } from "./BookingPanel";
@@ -51,14 +51,13 @@ describe("BookingPanel — signed out", () => {
 describe("BookingPanel — signed in", () => {
   const authed = { ...SLOT, signedIn: true, name: "Jane R", email: "jane@example.com" };
 
-  it("confirms, shows the add-to-calendar link, and broadcasts success", async () => {
+  it("confirms, shows instructional text and add-to-calendar link, broadcasts success", async () => {
     const user = userEvent.setup();
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ addToCalendarLink: "https://cal/add" }),
     });
     vi.stubGlobal("fetch", fetchMock);
-    vi.stubGlobal("window", { ...window, close: vi.fn() });
 
     render(<BookingPanel {...authed} />);
     await user.click(screen.getByRole("button", { name: /^confirm$/i }));
@@ -71,8 +70,9 @@ describe("BookingPanel — signed in", () => {
       date: "2026-06-24",
       time: "12:00",
     });
+    expect(await screen.findByText(/add it to your calendar/i)).toBeInTheDocument();
     expect(
-      await screen.findByRole("link", { name: /add to your calendar/i }),
+      screen.getByRole("link", { name: /add to your google calendar/i }),
     ).toHaveAttribute("href", "https://cal/add");
     expect(publishMock).toHaveBeenCalledWith({
       status: "success",
@@ -81,11 +81,8 @@ describe("BookingPanel — signed in", () => {
     });
   });
 
-  it("auto-closes the tab 2 seconds after a successful booking", async () => {
+  it("does not close the tab after a successful booking", async () => {
     const closeMock = vi.fn();
-    // Use fake timers before rendering so the useEffect setTimeout is controlled
-    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ addToCalendarLink: "https://cal/add" }),
@@ -93,21 +90,10 @@ describe("BookingPanel — signed in", () => {
     vi.stubGlobal("window", { ...window, close: closeMock });
 
     render(<BookingPanel {...authed} />);
-
-    // fireEvent.click is synchronous — avoids userEvent's internal timer usage
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /^confirm$/i }));
-      // Drain the microtask queue (fetch mock + state updates) without real timers
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
+    await userEvent.setup().click(screen.getByRole("button", { name: /^confirm$/i }));
+    await screen.findByRole("link", { name: /add to your google calendar/i });
 
     expect(closeMock).not.toHaveBeenCalled();
-    await act(async () => {
-      vi.advanceTimersByTime(2000);
-    });
-    expect(closeMock).toHaveBeenCalledOnce();
   });
 
   it("shows a 'just taken' message and broadcasts error on a 409", async () => {

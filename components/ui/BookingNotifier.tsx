@@ -9,7 +9,6 @@ import {
   type BookingResult,
 } from "@/lib/booking-broadcast";
 
-const SUCCESS_DISMISS_MS = 10000;
 const ERROR_DISMISS_MS = 8000;
 
 /**
@@ -23,9 +22,8 @@ export function BookingNotifier() {
   useEffect(() => subscribeBookingResult(setResult), []);
 
   useEffect(() => {
-    if (result?.status !== "success" && result?.status !== "error") return;
-    const ms = result.status === "success" ? SUCCESS_DISMISS_MS : ERROR_DISMISS_MS;
-    const id = setTimeout(() => setResult(null), ms);
+    if (result?.status !== "error") return;
+    const id = setTimeout(() => setResult(null), ERROR_DISMISS_MS);
     return () => clearTimeout(id);
   }, [result]);
 
@@ -36,7 +34,7 @@ export function BookingNotifier() {
           variant={result.status}
           message={
             result.status === "success"
-              ? `Booked — ${result.when}`
+              ? `Confirmed for ${result.when} — add it to your calendar to lock it in`
               : `Booking didn't go through — ${result.when}`
           }
           actionHref={
