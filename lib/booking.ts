@@ -3,7 +3,7 @@
 // all unit-testable and shareable between the route, the I/O layer, and the UI.
 
 import { z } from "zod";
-import { slotToUTC, SLOT_MS } from "./slot-time";
+import { slotToUTC, SLOT_MS, TIMEZONE } from "./slot-time";
 
 /**
  * Request body for POST /api/book. Shape only — the slot's date/time. The
@@ -26,6 +26,19 @@ export interface SlotWindow {
 export function slotWindow(date: string, time: string): SlotWindow {
   const start = slotToUTC(date, time);
   return { start, end: new Date(start.getTime() + SLOT_MS) };
+}
+
+/** Human-readable slot label in Pacific time, e.g. "Wed, Jun 24, 12 PM PT". */
+export function formatSlotLabel(date: string, time: string): string {
+  const start = slotToUTC(date, time);
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE,
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+  }).format(start);
+  return `${formatted} PT`;
 }
 
 /** `2030-01-15T17:00:00.000Z` -> `20300115T170000Z` (Google's basic format). */

@@ -4,35 +4,29 @@ import { useState } from "react";
 import clsx from "clsx";
 import type { DaySchedule } from "@/lib/availability";
 import { bookingEmail } from "@/lib/availability";
-import { BookingForm } from "./BookingForm";
+import { ContactFallback } from "./ContactFallback";
 
 interface SchedulerCardProps {
   availability: DaySchedule[];
   timezone?: string;
-  /** Optional override; when provided, suppresses the inline booking form. */
-  onSlotClick?: (day: string, time: string) => void;
 }
 
-interface SelectedSlot {
-  day: string;
-  date?: string;
-  time: string;
-  label: string;
+function bookUrl(date: string | undefined, time: string): string {
+  return `/book?date=${date}&time=${time}`;
 }
 
-export function SchedulerCard({
-  availability,
-  timezone = "PST",
-  onSlotClick,
-}: SchedulerCardProps) {
-  const [selected, setSelected] = useState<SelectedSlot | null>(null);
+export function SchedulerCard({ availability, timezone = "PST" }: SchedulerCardProps) {
+  const [popupBlocked, setPopupBlocked] = useState(false);
 
-  function handleSlotClick(slot: SelectedSlot) {
-    if (onSlotClick) {
-      onSlotClick(slot.day, slot.time);
-      return;
-    }
-    setSelected(slot);
+  // Open booking in a separate tab so the chat tab (and conversation) is never
+  // disturbed by the OAuth redirect. Anchors keep it accessible and let
+  // modified clicks open natively; a plain click goes through window.open so we
+  // can detect a blocked popup and offer a fallback.
+  function openBooking(e: React.MouseEvent, url: string) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    const win = window.open(url, "_blank", "noopener");
+    if (!win) setPopupBlocked(true);
   }
 
   return (
@@ -58,50 +52,44 @@ export function SchedulerCard({
                   —
                 </span>
               ) : (
-                day.slots.map((slot) => (
-                  <button
-                    key={slot.time}
-                    type="button"
-                    onClick={() =>
-                      handleSlotClick({
-                        day: day.day,
-                        date: day.date,
-                        time: slot.time,
-                        label: slot.label,
-                      })
-                    }
-                    aria-label={`Schedule for ${day.day} at ${slot.label} ${timezone}`}
-                    className="w-full rounded border border-accent/40 bg-transparent px-1 py-0.5 text-[11px] text-accent hover:border-accent hover:highlight-border focus-ring transition-all"
-                  >
-                    {slot.label}
-                  </button>
-                ))
+                day.slots.map((slot) => {
+                  const url = bookUrl(day.date, slot.time);
+                  return (
+                    <a
+                      key={slot.time}
+                      href={url}
+                      target="_blank"
+                      rel="noopener"
+                      onClick={(e) => openBooking(e, url)}
+                      aria-label={`Book ${day.day} at ${slot.label} ${timezone}`}
+                      className="block w-full rounded border border-accent/40 bg-transparent px-1 py-0.5 text-center text-[11px] text-accent hover:border-accent hover:highlight-border focus-ring transition-all"
+                    >
+                      {slot.label}
+                    </a>
+                  );
+                })
               )}
             </div>
           </div>
         ))}
       </div>
 
-      {selected ? (
-        <BookingForm
-          day={selected.day}
-          date={selected.date}
-          time={selected.time}
-          label={selected.label}
-          timezone={timezone}
-          onCancel={() => setSelected(null)}
+      {popupBlocked && (
+        <ContactFallback
+          message="Popup blocked — couldn't open the booking tab."
+          className="border-t border-border px-3 py-2"
         />
-      ) : (
-        <div className="border-t border-border px-3 py-2">
-          <a
-            href={`mailto:${bookingEmail}?subject=${encodeURIComponent("Interview Scheduling")}`}
-            className="text-[11px] text-muted hover:text-accent transition-colors focus-ring"
-            aria-label="Email to schedule"
-          >
-            Or email directly
-          </a>
-        </div>
       )}
+
+      <div className="border-t border-border px-3 py-2">
+        <a
+          href={`mailto:${bookingEmail}?subject=${encodeURIComponent("Interview Scheduling")}`}
+          className="text-[11px] text-muted hover:text-accent transition-colors focus-ring"
+          aria-label="Email to schedule"
+        >
+          Or email directly
+        </a>
+      </div>
     </div>
   );
 }

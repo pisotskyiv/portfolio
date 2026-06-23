@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { bookInput, slotWindow, googleCalendarLink } from "./booking";
+import { bookInput, slotWindow, googleCalendarLink, formatSlotLabel } from "./booking";
 
 describe("bookInput", () => {
   it("accepts a well-formed date and time", () => {
@@ -48,5 +48,16 @@ describe("googleCalendarLink", () => {
     expect(params.get("dates")).toBe("20300115T170000Z/20300115T180000Z");
     expect(params.get("text")).toBe("Intro call — Jane");
     expect(params.get("details")).toBe("Booked by Jane (jane@x.com).");
+  });
+});
+
+describe("formatSlotLabel", () => {
+  it("renders a Pacific-time label for the slot", () => {
+    // 2026-06-24 is a Wednesday; 12:00 PT.
+    const label = formatSlotLabel("2026-06-24", "12:00");
+    expect(label).toMatch(/Wed/);
+    expect(label).toMatch(/Jun 24/);
+    expect(label).toMatch(/12/);
+    expect(label).toMatch(/PT$/);
   });
 });

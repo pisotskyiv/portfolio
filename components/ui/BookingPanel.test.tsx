@@ -1,0 +1,96 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { BookingPanel } from "./BookingPanel";
+
+const signInMock = vi.fn();
+vi.mock("next-auth/react", () => ({ signIn: (...a: unknown[]) => signInMock(...a) }));
+
+const publishMock = vi.fn();
+vi.mock("@/lib/booking-broadcast", () => ({
+  publishBookingResult: (...a: unknown[]) => publishMock(...a),
+}));
+
+const SLOT = {
+  date: "2026-06-24",
+  time: "12:00",
+  whenLabel: "Wed Jun 24, 12pm PT",
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+});
+
+describe("BookingPanel — signed out", () => {
+  it("signs in with Google, returning to this same booking URL", async () => {
+    const user = userEvent.setup();
+    render(<BookingPanel {...SLOT} signedIn={false} />);
+
+    await user.click(screen.getByRole("button", { name: /sign in with google/i }));
+    expect(signInMock).toHaveBeenCalledWith("google", {
+      redirectTo: "/book?date=2026-06-24&time=12:00",
+    });
+    expect(screen.getByRole("link", { name: /linkedin/i })).toBeInTheDocument();
+  });
+});
+
+describe("BookingPanel — signed in", () => {
+  const authed = { ...SLOT, signedIn: true, name: "Jane R", email: "jane@example.com" };
+
+  it("confirms, shows the add-to-calendar link, and broadcasts success", async () => {
+    const user = userEvent.setup();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ addToCalendarLink: "https://cal/add" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<BookingPanel {...authed} />);
+    await user.click(screen.getByRole("button", { name: /^confirm$/i }));
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/book",
+      expect.objectContaining({ method: "POST" }),
+    );
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      date: "2026-06-24",
+      time: "12:00",
+    });
+    expect(
+      await screen.findByRole("link", { name: /add to your calendar/i }),
+    ).toHaveAttribute("href", "https://cal/add");
+    expect(publishMock).toHaveBeenCalledWith({
+      status: "success",
+      when: "Wed Jun 24, 12pm PT",
+      link: "https://cal/add",
+    });
+  });
+
+  it("shows a 'just taken' message and broadcasts error on a 409", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 409 }));
+
+    render(<BookingPanel {...authed} />);
+    await user.click(screen.getByRole("button", { name: /^confirm$/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/just taken/i);
+    expect(screen.getByRole("link", { name: /linkedin/i })).toBeInTheDocument();
+    expect(publishMock).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "error", when: "Wed Jun 24, 12pm PT" }),
+    );
+  });
+
+  it("handles a network failure with an error and broadcast", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+
+    render(<BookingPanel {...authed} />);
+    await user.click(screen.getByRole("button", { name: /^confirm$/i }));
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+    expect(publishMock).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "error" }),
+    );
+  });
+});

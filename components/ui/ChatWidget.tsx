@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChatFab } from "./ChatFab";
 import { ChatDrawer } from "./ChatDrawer";
+import { BookingNotifier } from "./BookingNotifier";
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,6 +25,7 @@ export function ChatWidget() {
     <>
       <ChatFab isOpen={isOpen} onClick={() => setIsOpen((prev) => !prev)} />
       <ChatDrawer isOpen={isOpen} onClose={() => setIsOpen(false)} />
+      <BookingNotifier />
     </>
   );
 }
