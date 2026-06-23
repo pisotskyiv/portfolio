@@ -16,7 +16,7 @@ export const siteConfig = {
   location: "San Francisco, CA",
   links: {
     github: "https://github.com/vlad-pisotskyi",
-    linkedin: "https://www.linkedin.com/in/vpisotski/",
+    linkedin: "https://www.linkedin.com/in/pisotskyiv/",
     resume: "/resume.pdf",
   },
   education: [
