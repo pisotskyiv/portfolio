@@ -6,14 +6,14 @@ describe("Hero", () => {
   it("renders a labelled section landmark", () => {
     render(<Hero />);
     expect(
-      screen.getByRole("region", { name: /Vlad Pisotski/i }),
+      screen.getByRole("region", { name: /Vlad Pisotskyi/i }),
     ).toBeInTheDocument();
   });
 
   it("shows name as heading", () => {
     render(<Hero />);
     expect(
-      screen.getByRole("heading", { name: /Vlad Pisotski/i }),
+      screen.getByRole("heading", { name: /Vlad Pisotskyi/i }),
     ).toBeInTheDocument();
   });
 

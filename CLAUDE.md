@@ -4,19 +4,21 @@ Personal portfolio site. The build is part of the showcase: test-driven, CI-gate
 
 ## Conventions
 
+- **Stack.** Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind v4 (CSS-first `@theme` in `app/globals.css`, no config file), Vitest + Testing Library, Playwright + axe, AI SDK v6 (`ai`@6, `@ai-sdk/*`). Keep version claims here and in skills in sync with `package.json`.
 - **Content is data.** Edit `lib/projects.ts` and `lib/site.ts`; keep component JSX presentational.
 - **Server components by default.** Client islands only where interaction requires them.
-- **TDD.** Write Vitest unit test first, then implement. Write Playwright E2E test first for each user flow, then build the UI to pass it.
-- **Gates (run before every push; CI enforces them):** `npm run lint && npm run typecheck && npm test && npm run build`.
-- **E2E:** `npm run test:e2e` — run locally before shipping any user-visible feature. Lives in `e2e/`. Includes axe accessibility scan on every page.
-- **Git.** Conventional commits, small PRs. Push to `main` = production deploy; PR = preview deploy.
+- **TDD.** Write the Vitest unit test first, then implement. Write the Playwright E2E test first for each user flow, then build the UI to pass it.
+- **Gate (run before every push; CI enforces it):** `npm run gate` (= lint + typecheck + test + build). Full pre-ship gate including E2E: `npm run ship`.
+- **E2E:** `npm run test:e2e` — run locally before shipping any user-visible feature. Lives in `e2e/`. Runs an axe accessibility scan (home page today; extend the scan per page/flow as they ship — tracked in `CLAUDE.local.md`).
+- **Git.** Conventional commits, small PRs. Push to `main` = production deploy; PR = preview deploy. No `Co-Authored-By` or AI-attribution trailer in commit messages or PR bodies.
+- **Devlog.** The build is part of the showcase. Every `feat`/`fix` shipping user-facing or architectural work appends a `notes/chatbot-devlog.md` entry (what / decision / problem) as the change lands — not reconstructed later. Enforced as a step + checkpoint in the `commit-pr` skill. `docs`/`chore` exempt.
 - **Accessible by default.** Semantic HTML, visible focus states on all interactive elements, axe scan passes, WCAG AA contrast minimums, `prefers-reduced-motion` respected. See `notes/styleguide/accessibility.md`.
 - **Responsive by default.** Mobile-first Tailwind classes. Every section tested at 375px and 1280px. No horizontal overflow at any viewport.
 
 ## Component architecture
 
-- `components/ui/` — reusable primitives (Button, Card, Badge, etc.)
-- `components/sections/` — one-off page sections (Hero, Projects, About, Contact)
+- `components/ui/` — reusable primitives (Button, NavLink, ChatFab, ChatDrawer, SchedulerCard, etc.)
+- `components/sections/` — one-off page sections (Hero, Projects, About, Nav)
 - Props: explicit and fully typed — no prop spreading, no `...rest` passthrough
 - Every component gets a test; no untested components ship
 - Server components by default; `"use client"` only when interaction requires it
@@ -47,6 +49,19 @@ When introducing a pattern not covered: flag it, ask if it becomes a rule, add i
 
 ## Skills
 
-Workflow skills live in `.claude/skills/` (next-conventions, tdd-flow, add-project, case-study, ship-check) — loaded on demand.
+Workflow skills live in `.claude/skills/`, loaded on demand. Authoring standard for all skills: read `skill-authoring` before creating or editing any skill (template, checkpoints, receipt, and the "skill is truth / every rule names its check" policy).
+
+| Skill | Use for |
+|---|---|
+| `skill-authoring` | the standard every other skill follows |
+| `next-conventions` | where code belongs — server/client, action/route, state ladder |
+| `new-component` | create a UI primitive or page section |
+| `tdd-flow` | red/green/refactor; what gets a test |
+| `add-project` | add or edit a project card in `lib/projects.ts` |
+| `case-study` | write a `/work/[slug]` case study page |
+| `chatbot-api` | streaming AI route — tools, provider config, secrets |
+| `palette-switch` | change the active color palette |
+| `commit-pr` | commit and PR conventions for this repo |
+| `ship-check` | pre-deploy gate before pushing to `main` |
 
 > Personal working notes and roadmap are in `CLAUDE.local.md` (gitignored).

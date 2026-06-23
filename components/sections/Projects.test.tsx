@@ -8,9 +8,11 @@ describe("Projects", () => {
     expect(document.querySelector("#work")).toBeInTheDocument();
   });
 
-  it("renders Selected Work heading", () => {
+  it("renders Selected Work as a level-2 heading", () => {
     render(<Projects />);
-    expect(screen.getByText(/selected work/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: /selected work/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders CTD RAG Chatbot title", () => {
@@ -87,7 +89,7 @@ describe("Projects", () => {
     render(<Projects />);
     expect(
       screen.getByRole("link", { name: /view this portfolio on github/i }),
-    ).toHaveAttribute("href", "https://github.com/Pisotski/portfolio");
+    ).toHaveAttribute("href", "https://github.com/vlad-pisotskyi/portfolio");
   });
 
   it("does not render a github link for CTD RAG chatbot", () => {

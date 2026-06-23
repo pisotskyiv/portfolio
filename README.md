@@ -1,6 +1,6 @@
-# Portfolio — Vlad Pisotski
+# Portfolio — Vlad Pisotskyi
 
-[![CI](https://github.com/Pisotski/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/Pisotski/portfolio/actions/workflows/ci.yml)
+[![CI](https://github.com/vlad-pisotskyi/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/vlad-pisotskyi/portfolio/actions/workflows/ci.yml)
 
 Personal portfolio site for an AI/LLM-focused full-stack engineer. The build process is itself part of the showcase: test-driven, CI-gated, shipped via an agentic-engineering workflow.
 
@@ -15,7 +15,7 @@ Personal portfolio site for an AI/LLM-focused full-stack engineer. The build pro
 
 ## Architecture
 
-- `app/` — App Router entry (`layout.tsx`, `page.tsx`) and global styles.
+- `app/` — App Router entry; home page lives under `app/(main)/` (`layout.tsx`, `page.tsx`), and global styles (`globals.css`).
 - `components/` — presentational sections (Hero, Projects, About, etc.); each rendered from typed data, not hardcoded copy.
 - `lib/` — content as typed data: `projects.ts` (project cards) and `site.ts` (identity, links, education). Edit content here; components stay untouched.
 

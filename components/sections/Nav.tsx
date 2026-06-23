@@ -27,16 +27,16 @@ export function Nav() {
     >
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex h-full max-w-5xl items-center justify-between px-12"
+        className="mx-auto flex h-full max-w-5xl items-center justify-between px-4 sm:px-8 lg:px-12"
       >
         <Link
           href="/"
-          aria-label="Vlad Pisotski"
+          aria-label="Vlad Pisotskyi"
           className="font-bold text-accent transition-colors hover:text-accent-hover focus-ring"
         >
           VP
         </Link>
-        <div className="flex items-center gap-x-6">
+        <div className="flex items-center gap-x-4 sm:gap-x-6">
           <NavLink href="#work">Work</NavLink>
           <NavLink href="#about">About</NavLink>
           <NavLink href="#contact">Contact</NavLink>

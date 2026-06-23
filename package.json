@@ -11,15 +11,27 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "gate": "npm run lint && npm run typecheck && npm test && npm run build",
+    "ship": "npm run gate && npm run test:e2e"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.85",
+    "@ai-sdk/google": "^3.0.83",
+    "@ai-sdk/openai": "^3.0.73",
+    "@ai-sdk/react": "^3.0.210",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
+    "ai": "^6.0.208",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
+    "googleapis": "^173.0.0",
     "lucide-react": "^1.21.0",
     "next": "^16.2.9",
+    "next-auth": "^5.0.0-beta.31",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
