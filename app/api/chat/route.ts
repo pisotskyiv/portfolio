@@ -12,6 +12,7 @@ import { z } from "zod";
 import { getAvailability } from "@/lib/google-calendar";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSystemPrompt } from "@/lib/system-prompt";
+import { MAX_INPUT_CHARS } from "@/lib/chat-limits";
 
 // googleapis (in the scheduler tool) is Node-only, and we stream — pin Node
 // and cap the request so the route can't hang or run on Edge.
@@ -19,8 +20,8 @@ export const runtime = "nodejs";
 export const maxDuration = 30;
 
 // Cheap abuse/cost guards applied before the model is ever touched.
+// MAX_INPUT_CHARS is shared with the client input cap via lib/chat-limits.
 const MAX_MESSAGES = 25;
-const MAX_INPUT_CHARS = 4000;
 const MAX_OUTPUT_TOKENS = 800;
 
 function messageChars(message: UIMessage): number {

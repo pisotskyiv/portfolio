@@ -59,6 +59,23 @@ describe("ChatDrawer", () => {
     expect(screen.getByText("Chat with Vlad")).toBeInTheDocument();
   });
 
+  it("caps the chat input length", () => {
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.getByRole("textbox", { name: /chat message/i })).toHaveAttribute(
+      "maxlength",
+      "4000",
+    );
+  });
+
+  it("shows a character counter once the user types", async () => {
+    const user = userEvent.setup();
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    // No counter on an empty input.
+    expect(screen.queryByText(/\/4000$/)).not.toBeInTheDocument();
+    await user.type(screen.getByRole("textbox", { name: /chat message/i }), "hello");
+    expect(screen.getByText("5/4000")).toBeInTheDocument();
+  });
+
   it("shows greeting when no messages", () => {
     render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
     expect(screen.getByText(/Vlad's AI assistant/i)).toBeInTheDocument();
@@ -130,6 +147,21 @@ describe("ChatDrawer", () => {
     const link = screen.getByRole("link", { name: /connect with me on linkedin/i });
     expect(link).toHaveAttribute("href", expect.stringContaining("linkedin.com"));
     expect(alert.querySelector('a[href^="mailto:"]')).toBeNull();
+  });
+
+  it("loads the scheduler inline when the schedule button is clicked in error state", async () => {
+    mockError = new Error("rate limited");
+    global.fetch = vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ availability }),
+    }) as unknown as typeof fetch;
+
+    const user = userEvent.setup();
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /schedule an intro interview/i }));
+
+    expect(fetch).toHaveBeenCalledWith("/api/availability?week=0");
+    await screen.findByText(/schedule a call/i);
   });
 
   it("renders an error fallback for a failed tool call, not a spinner", () => {

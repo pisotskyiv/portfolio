@@ -102,7 +102,9 @@ test.describe("Chat flow", () => {
 
     const dialog = page.getByRole("dialog", { name: "Chat with Vlad" });
     await expect(dialog.getByRole("alert")).toContainText(/paused or rate-limited/i);
-    await expect(dialog.getByRole("link", { name: /email me directly/i })).toBeVisible();
+    await expect(
+      dialog.getByRole("link", { name: /connect with me on linkedin/i }),
+    ).toBeVisible();
   });
 
   test("passes axe accessibility scan with the chat open", async ({ page }) => {

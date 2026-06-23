@@ -9,6 +9,7 @@ import { SchedulerCard } from "./SchedulerCard";
 import type { DaySchedule } from "@/lib/availability";
 import { bookingEmail } from "@/lib/availability";
 import { siteConfig } from "@/lib/site";
+import { MAX_INPUT_CHARS } from "@/lib/chat-limits";
 
 interface ChatDrawerProps {
   isOpen: boolean;
@@ -18,6 +19,9 @@ interface ChatDrawerProps {
 export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [input, setInput] = useState("");
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [offlineAvailability, setOfflineAvailability] = useState<DaySchedule[] | null>(null);
+  const [offlineLoading, setOfflineLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, error } = useChat();
@@ -39,6 +43,17 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
   }
 
   const isLoading = status === "streaming" || status === "submitted";
+
+  function handleScheduleClick() {
+    setShowScheduler(true);
+    if (offlineAvailability) return;
+    setOfflineLoading(true);
+    fetch("/api/availability?week=0")
+      .then((r) => r.json())
+      .then((data: { availability: DaySchedule[] }) => setOfflineAvailability(data.availability))
+      .catch(() => {})
+      .finally(() => setOfflineLoading(false));
+  }
 
   return (
     <AnimatePresence>
@@ -212,19 +227,37 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
               {error && (
                 <div
                   role="alert"
-                  className="rounded-lg border border-border bg-bg px-3 py-2 text-sm text-muted"
+                  className="flex flex-col gap-2 rounded-lg border border-border bg-bg px-3 py-2 text-sm text-muted"
                 >
-                  This demo is paused or rate-limited. Learn more in a case
-                  study, or{" "}
-                  <a
-                    href={siteConfig.links.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-accent underline hover:text-accent-hover focus-ring"
-                  >
-                    connect with me on LinkedIn
-                  </a>
-                  .
+                  <span>
+                    This demo is paused or rate-limited. Learn more in a case
+                    study, or{" "}
+                    <a
+                      href={siteConfig.links.linkedin}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-accent underline hover:text-accent-hover focus-ring"
+                    >
+                      connect with me on LinkedIn
+                    </a>
+                    {" "}— or{" "}
+                    <button
+                      type="button"
+                      onClick={handleScheduleClick}
+                      className="text-accent underline hover:text-accent-hover focus-ring"
+                    >
+                      schedule an intro interview
+                    </button>
+                    .
+                  </span>
+                  {showScheduler && offlineLoading && (
+                    <span className="text-xs text-muted animate-pulse">
+                      Loading availability...
+                    </span>
+                  )}
+                  {showScheduler && offlineAvailability && (
+                    <SchedulerCard availability={offlineAvailability} />
+                  )}
                 </div>
               )}
 
@@ -236,10 +269,12 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                 <input
                   type="text"
                   aria-label="Chat message"
+                  aria-describedby={input.length > 0 ? "chat-char-count" : undefined}
                   placeholder="Ask me anything..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   disabled={isLoading}
+                  maxLength={MAX_INPUT_CHARS}
                   className="flex-1 bg-transparent text-sm text-text placeholder:text-muted focus:outline-none disabled:opacity-50"
                 />
                 <button
@@ -251,6 +286,17 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                   <ArrowUp size={13} aria-hidden="true" />
                 </button>
               </div>
+              {input.length > 0 && (
+                <p
+                  id="chat-char-count"
+                  className={clsx(
+                    "mt-1 text-right text-[10px] tabular-nums",
+                    MAX_INPUT_CHARS - input.length <= 200 ? "text-accent" : "text-muted",
+                  )}
+                >
+                  {input.length}/{MAX_INPUT_CHARS}
+                </p>
+              )}
             </form>
           </motion.div>
         </>
