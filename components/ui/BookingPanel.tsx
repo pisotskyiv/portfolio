@@ -34,6 +34,14 @@ export function BookingPanel({
   const [link, setLink] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
+  useEffect(() => {
+    if (phase !== "done" || !link) return;
+    const timer = setTimeout(() => {
+      window.close();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [phase, link]);
+
   if (!signedIn) {
     return (
       <div className="flex flex-col gap-3 text-sm text-text">
@@ -80,14 +88,6 @@ export function BookingPanel({
       publishBookingResult({ status: "error", when: whenLabel });
     }
   }
-
-  useEffect(() => {
-    if (phase !== "done" || !link) return;
-    const timer = setTimeout(() => {
-      window.close();
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [phase, link]);
 
   if (phase === "done" && link) {
     return (

@@ -26,6 +26,15 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+describe("BookingPanel — hook order", () => {
+  it("can flip from signed-out to signed-in without a hook-order violation", () => {
+    const { rerender } = render(<BookingPanel {...SLOT} signedIn={false} />);
+    expect(screen.getByRole("button", { name: /sign in with google/i })).toBeInTheDocument();
+    rerender(<BookingPanel {...SLOT} signedIn={true} name="Jane" email="jane@example.com" />);
+    expect(screen.getByRole("button", { name: /^confirm$/i })).toBeInTheDocument();
+  });
+});
+
 describe("BookingPanel — signed out", () => {
   it("signs in with Google, returning to this same booking URL", async () => {
     const user = userEvent.setup();
