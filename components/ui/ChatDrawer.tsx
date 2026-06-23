@@ -8,6 +8,7 @@ import { useChat } from "@ai-sdk/react";
 import { SchedulerCard } from "./SchedulerCard";
 import type { DaySchedule } from "@/lib/availability";
 import { bookingEmail } from "@/lib/availability";
+import { siteConfig } from "@/lib/site";
 
 interface ChatDrawerProps {
   isOpen: boolean;
@@ -94,9 +95,39 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
               className="scrollbar-thin scrollbar-thumb-accent/40 scrollbar-track-transparent flex flex-1 flex-col gap-3 overflow-y-auto p-4 sm:max-h-105"
             >
               {messages.length === 0 && (
-                <div className="rounded-lg border border-border bg-bg px-3 py-2 text-sm leading-relaxed text-text">
-                  Hi! I&apos;m Vlad&apos;s AI assistant. Ask me anything about
-                  his experience, projects, or skills.
+                <div className="flex flex-col gap-3">
+                  <div className="rounded-lg border border-border bg-bg px-3 py-2 text-sm leading-relaxed text-text">
+                    Hi! I&apos;m Vlad&apos;s AI assistant. Ask me about his
+                    experience, projects, and skills — or try one of these:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      "What can you do?",
+                      "What’s Vlad’s availability this week?",
+                    ].map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => sendMessage({ text: prompt })}
+                        disabled={isLoading}
+                        className="rounded-full border border-border bg-elevated px-3 py-1 text-xs text-muted hover:border-accent/50 hover:text-text focus-ring transition-colors disabled:opacity-50"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted leading-relaxed">
+                    No data collected. Demo purposes only.{" "}
+                    <a
+                      href={siteConfig.links.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent underline hover:text-accent-hover focus-ring"
+                    >
+                      Connect on LinkedIn
+                    </a>{" "}
+                    to reach me directly.
+                  </p>
                 </div>
               )}
 

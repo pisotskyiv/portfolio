@@ -100,6 +100,22 @@ describe("ChatDrawer", () => {
     expect(mockSendMessage).toHaveBeenCalledWith({ text: "What are your skills?" });
   });
 
+  it("sends suggestion chip prompt on click", async () => {
+    const user = userEvent.setup();
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "What can you do?" }));
+    expect(mockSendMessage).toHaveBeenCalledWith({ text: "What can you do?" });
+  });
+
+  it("renders disclaimer with LinkedIn link", () => {
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.getByText(/no data collected/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /linkedin/i })).toHaveAttribute(
+      "href",
+      expect.stringContaining("linkedin.com"),
+    );
+  });
+
   it("renders a graceful fallback when the chat errors", () => {
     mockError = new Error("rate limited");
     render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
