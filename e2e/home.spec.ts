@@ -4,16 +4,18 @@ import AxeBuilder from "@axe-core/playwright";
 test.describe("Home page", () => {
   test("nav shows site name and section links", async ({ page }) => {
     await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Main navigation" });
     await expect(page.getByRole("banner")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Vlad Pisotski" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Work" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "About" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Contact" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Vlad Pisotski" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Work" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Contact" })).toBeVisible();
   });
 
   test("nav has GitHub link", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "GitHub" })).toBeVisible();
+    const nav = page.getByRole("navigation", { name: "Main navigation" });
+    await expect(nav.getByRole("link", { name: "GitHub" })).toBeVisible();
   });
 
   test("hero shows name heading and role", async ({ page }) => {
@@ -61,8 +63,11 @@ test.describe("Home page — responsive", () => {
   test("nav links visible at 375px", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "Work" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "GitHub" })).toBeVisible();
+    // Contact and GitHub are intentionally hidden below the `sm` breakpoint
+    // (`hidden sm:contents`); Work and About stay visible at mobile width.
+    const nav = page.getByRole("navigation", { name: "Main navigation" });
+    await expect(nav.getByRole("link", { name: "Work" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
   });
 
   test("hero heading visible at 375px", async ({ page }) => {
