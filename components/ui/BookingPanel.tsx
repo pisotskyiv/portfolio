@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { ContactFallback } from "./ContactFallback";
 import { publishBookingResult } from "@/lib/booking-broadcast";
@@ -81,22 +81,24 @@ export function BookingPanel({
     }
   }
 
+  useEffect(() => {
+    if (phase !== "done" || !link) return;
+    const timer = setTimeout(() => {
+      window.close();
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [phase, link]);
+
   if (phase === "done" && link) {
     return (
-      <div role="status" className="flex flex-col gap-2 text-sm text-text">
-        <p className="font-medium">Booked — {whenLabel}.</p>
-        <a
-          href={link}
-          target="_blank"
-          rel="noreferrer"
-          className="text-accent hover:underline focus-ring"
-        >
-          Add to your calendar
-        </a>
-        <p className="text-[12px] text-muted">
-          I&apos;ll follow up by email to confirm. You can close this tab.
-        </p>
-      </div>
+      <a
+        href={link}
+        target="_blank"
+        rel="noreferrer"
+        className="text-sm text-accent hover:underline focus-ring"
+      >
+        Add to your calendar
+      </a>
     );
   }
 

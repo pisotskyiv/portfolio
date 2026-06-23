@@ -9,13 +9,13 @@ import {
   type BookingResult,
 } from "@/lib/booking-broadcast";
 
+const SUCCESS_DISMISS_MS = 10000;
 const ERROR_DISMISS_MS = 8000;
 
 /**
  * Lives in the chat tab. Listens for booking outcomes broadcast from the
  * separate booking tab and surfaces them as a toast, so the user gets feedback
- * without leaving the conversation. Success stays until dismissed (it carries
- * the add-to-calendar link); errors auto-dismiss.
+ * without leaving the conversation. Both success and error auto-dismiss.
  */
 export function BookingNotifier() {
   const [result, setResult] = useState<BookingResult | null>(null);
@@ -23,8 +23,9 @@ export function BookingNotifier() {
   useEffect(() => subscribeBookingResult(setResult), []);
 
   useEffect(() => {
-    if (result?.status !== "error") return;
-    const id = setTimeout(() => setResult(null), ERROR_DISMISS_MS);
+    if (result?.status !== "success" && result?.status !== "error") return;
+    const ms = result.status === "success" ? SUCCESS_DISMISS_MS : ERROR_DISMISS_MS;
+    const id = setTimeout(() => setResult(null), ms);
     return () => clearTimeout(id);
   }, [result]);
 

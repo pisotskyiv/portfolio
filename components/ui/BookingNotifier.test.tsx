@@ -1,6 +1,6 @@
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { BookingResult } from "@/lib/booking-broadcast";
 
 // AnimatePresence defers unmount until the exit animation resolves, which jsdom
@@ -28,6 +28,10 @@ vi.mock("@/lib/booking-broadcast", () => ({
 beforeEach(() => {
   captured = null;
   unsubscribe.mockClear();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 function emit(result: BookingResult) {
@@ -73,5 +77,25 @@ describe("BookingNotifier", () => {
     const { unmount } = render(<BookingNotifier />);
     unmount();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("success toast auto-dismisses after 10 s", () => {
+    vi.useFakeTimers();
+    render(<BookingNotifier />);
+    emit({ status: "success", when: "Wed Jun 24, 12pm PT", link: "https://cal/x" });
+
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(10001));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("error toast auto-dismisses after 8 s", () => {
+    vi.useFakeTimers();
+    render(<BookingNotifier />);
+    emit({ status: "error", when: "Wed Jun 24, 12pm PT" });
+
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(8001));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });
