@@ -217,10 +217,12 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                   This demo is paused or rate-limited. Learn more in a case
                   study, or{" "}
                   <a
-                    href={`mailto:${bookingEmail}`}
+                    href={siteConfig.links.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
                     className="text-accent underline hover:text-accent-hover focus-ring"
                   >
-                    email me directly
+                    connect with me on LinkedIn
                   </a>
                   .
                 </div>

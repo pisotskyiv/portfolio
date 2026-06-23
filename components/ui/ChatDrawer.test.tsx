@@ -124,9 +124,12 @@ describe("ChatDrawer", () => {
   it("renders a graceful fallback when the chat errors", () => {
     mockError = new Error("rate limited");
     render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      /paused or rate-limited/i,
-    );
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(/paused or rate-limited/i);
+    // No email exposed — the fallback points to LinkedIn, not a mailto.
+    const link = screen.getByRole("link", { name: /connect with me on linkedin/i });
+    expect(link).toHaveAttribute("href", expect.stringContaining("linkedin.com"));
+    expect(alert.querySelector('a[href^="mailto:"]')).toBeNull();
   });
 
   it("renders an error fallback for a failed tool call, not a spinner", () => {
