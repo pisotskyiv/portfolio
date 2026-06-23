@@ -66,14 +66,14 @@ describe("getBusinessDays", () => {
     expect(days.map((d) => d.dow)).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it("rolls forward over the weekend when starting midweek", () => {
+  it("snaps to Mon-Fri of the current week when starting midweek", () => {
     const days = getBusinessDays(new Date("2026-06-18T12:00:00Z")); // a Thursday
     expect(days.map((d) => d.dateStr)).toEqual([
+      "2026-06-15", // Mon
+      "2026-06-16", // Tue
+      "2026-06-17", // Wed
       "2026-06-18", // Thu
       "2026-06-19", // Fri
-      "2026-06-22", // Mon (skips Sat/Sun)
-      "2026-06-23", // Tue
-      "2026-06-24", // Wed
     ]);
   });
 

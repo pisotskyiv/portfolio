@@ -23,11 +23,12 @@ export function getBusinessDays(
   const laDateStr = now.toLocaleDateString("en-CA", { timeZone: TIMEZONE });
   const cursor = new Date(`${laDateStr}T12:00:00Z`);
 
-  if (weekOffset > 0) {
-    const dow = cursor.getUTCDay(); // 0=Sun..6=Sat
-    const daysSinceMonday = dow === 0 ? 6 : dow - 1;
-    cursor.setUTCDate(cursor.getUTCDate() - daysSinceMonday + weekOffset * 7);
-  }
+  const dow = cursor.getUTCDay(); // 0=Sun..6=Sat
+  const daysSinceMonday = dow === 0 ? 6 : dow - 1;
+  // On weekOffset=0, a weekend means the current week's Mon is already past —
+  // jump to next week instead of showing five empty past columns.
+  const extraWeek = weekOffset === 0 && (dow === 0 || dow === 6) ? 7 : 0;
+  cursor.setUTCDate(cursor.getUTCDate() - daysSinceMonday + weekOffset * 7 + extraWeek);
 
   const out: Array<{ dateStr: string; dow: number }> = [];
   while (out.length < count) {
