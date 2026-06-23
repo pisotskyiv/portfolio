@@ -43,6 +43,11 @@ beforeEach(() => {
 });
 
 describe("ChatDrawer", () => {
+  it("message list is an aria-live log region", () => {
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.getByRole("log")).toBeInTheDocument();
+  });
+
   it("renders nothing when closed", () => {
     const { container } = render(<ChatDrawer isOpen={false} onClose={vi.fn()} />);
     expect(container.firstChild).toBeNull();

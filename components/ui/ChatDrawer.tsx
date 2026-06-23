@@ -91,6 +91,9 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
             </div>
 
             <div
+              role="log"
+              aria-live="polite"
+              aria-relevant="additions"
               onScroll={handleScroll}
               className="scrollbar-thin scrollbar-thumb-accent/40 scrollbar-track-transparent flex flex-1 flex-col gap-3 overflow-y-auto p-4 sm:max-h-105"
             >
