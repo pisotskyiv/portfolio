@@ -44,6 +44,7 @@ describe("checkRateLimit", () => {
   });
 
   it("blocks when the limit is exceeded", async () => {
+    process.env.VERCEL_ENV = "production";
     process.env.UPSTASH_REDIS_REST_URL = "https://example.upstash.io";
     process.env.UPSTASH_REDIS_REST_TOKEN = "token";
     limitMock.mockResolvedValue({
@@ -60,6 +61,7 @@ describe("checkRateLimit", () => {
   });
 
   it("allows when under the limit", async () => {
+    process.env.VERCEL_ENV = "production";
     process.env.UPSTASH_REDIS_REST_URL = "https://example.upstash.io";
     process.env.UPSTASH_REDIS_REST_TOKEN = "token";
     limitMock.mockResolvedValue({
@@ -102,6 +104,7 @@ describe("checkBookingRateLimit", () => {
   });
 
   it("blocks when the booking limit is exceeded", async () => {
+    process.env.VERCEL_ENV = "production";
     process.env.UPSTASH_REDIS_REST_URL = "https://example.upstash.io";
     process.env.UPSTASH_REDIS_REST_TOKEN = "token";
     limitMock.mockResolvedValue({ success: false, remaining: 0, limit: 5, reset: 1 });

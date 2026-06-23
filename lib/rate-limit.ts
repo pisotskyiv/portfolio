@@ -51,12 +51,13 @@ async function check(
   max: number,
   identifier: string,
 ): Promise<RateLimitResult> {
+  // Skip enforcement outside production so local dev doesn't burn the daily quota.
+  if (process.env.VERCEL_ENV !== "production") {
+    return { success: true, remaining: max, limit: max, reset: 0, enforced: false };
+  }
   const l = getLimiter(prefix, max);
   if (!l) {
-    if (process.env.VERCEL_ENV === "production") {
-      return { success: false, remaining: 0, limit: max, reset: 0, enforced: false };
-    }
-    return { success: true, remaining: max, limit: max, reset: 0, enforced: false };
+    return { success: false, remaining: 0, limit: max, reset: 0, enforced: false };
   }
   const { success, remaining, limit, reset } = await l.limit(identifier);
   return { success, remaining, limit, reset, enforced: true };
