@@ -1,6 +1,6 @@
 ---
 name: commit-pr
-description: Commit and pull-request conventions for this repo — Conventional Commits, one feature per PR, the pre-push gate, and the public-safe / irreversible checkpoints. Use when staging a change, writing a commit, or opening a PR.
+description: Commit and pull-request conventions for this repo — Conventional Commits, one feature per PR, the pre-push gate, the case-study devlog entry, and the public-safe / irreversible checkpoints. Use when staging a change, writing a commit, or opening a PR.
 ---
 
 # commit-pr
@@ -18,9 +18,10 @@ Every commit and PR in this repo follows Conventional Commits, ships one indepen
 2. Stage deliberately. Prefer `git add <path>` over `git add -A` so nothing unintended rides along.
 3. Run the public-safe scan on what is staged (see Checkpoints). The repo is recruiter-visible; the history is permanent.
 4. Write the commit in Conventional Commits form (see Rules below).
-5. Run the gate before any push: `npm run gate`. For a user-visible change, run `npm run ship` instead (gate + E2E + axe) — see the `ship-check` skill for the human half of a production push.
-6. Push, and open the PR if one is not open. PR title is itself a Conventional Commit subject; PR body states what and why, not how.
-7. Stop at the IRREVERSIBLE checkpoint before pushing — confirm the branch and the deploy consequence.
+5. Record the build. If this is a `feat`/`fix` shipping user-facing or architectural work, append or extend an entry in `notes/chatbot-devlog.md` (gitignored, case-study raw material) — what was built, the decision, the problem hit. Do this as part of the change, not "later"; "later" is how it gets dropped. See the DEVLOG checkpoint.
+6. Run the gate before any push: `npm run gate`. For a user-visible change, run `npm run ship` instead (gate + E2E + axe) — see the `ship-check` skill for the human half of a production push.
+7. Push, and open the PR if one is not open. PR title is itself a Conventional Commit subject; PR body states what and why, not how.
+8. Stop at the IRREVERSIBLE checkpoint before pushing — confirm the branch and the deploy consequence.
 
 ## Rules
 
@@ -42,11 +43,16 @@ Check: guidance — scan the message before commit; the trailer must be absent.
 Rule: never commit a secret, an `.env*` value, or internal-only content. `.env*`, `CLAUDE.local.md`, and `/notes/` are gitignored — keep it that way; do not force-add them. The staged diff must contain no API keys, no strategy or roadmap, no internal notes.
 Check: `git diff --staged` reviewed at the PUBLIC-SAFE checkpoint below — the agent reads the full staged diff before every commit. A pre-commit secret-scan hook is tracked in `CLAUDE.local.md`.
 
+Rule: every `feat`/`fix` shipping user-facing or architectural work leaves a `notes/chatbot-devlog.md` entry — the build is part of the showcase, and the devlog is the case study's raw material. The entry is NOT staged (the file is gitignored); it is a parallel record that must stay current as features land, not be reconstructed from `git log` months later. `docs`/`chore`/`style`/`ci` are exempt.
+Check: confirmed at the DEVLOG checkpoint below, and hard-enforced by `.claude/hooks/devlog-guard.sh` — a `PreToolUse`/`Bash` hook (registered in `.claude/settings.json`) that blocks a `feat`/`fix` `git commit` when `notes/chatbot-devlog.md` is older than the last commit. Bypass with `[no-devlog]` in the message.
+
 ## Checkpoints
 
 > CHECKPOINT — SCOPE. Before committing across multiple files or splitting a mixed diff, state which files belong to which commit and confirm the grouping is one feature each.
 
 > CHECKPOINT — PUBLIC-SAFE. Before each commit, run `git diff --staged` and confirm it contains no secrets, no `.env*` values, no API keys, no internal strategy or roadmap, and no `CLAUDE.local.md` or `notes/` content. The repo is recruiter-visible and history is permanent. Confirm: the staged diff is clean to publish.
+
+> CHECKPOINT — DEVLOG. For a `feat`/`fix` shipping user-facing or architectural work, confirm `notes/chatbot-devlog.md` has an entry covering this change (what / decision / problem) before treating the commit as done. If it does not, write it now — this is the step that gets silently skipped under a long session, which is exactly why it is a checkpoint. Confirm: the devlog reflects this change, or the change is exempt (`docs`/`chore`/`style`/`ci`).
 
 > CHECKPOINT — IRREVERSIBLE. Before `git push`, confirm the target branch and its deploy consequence: pushing to `main` is a production deploy; a PR push is a preview deploy. For a user-visible change, confirm the preview was reviewed (see `ship-check`) before merging to `main`. Confirm: branch is intended and the gate (or ship) ran green.
 
@@ -56,6 +62,7 @@ Check: `git diff --staged` reviewed at the PUBLIC-SAFE checkpoint below — the 
 --- RECEIPT ---
 did:       <commits written / PR opened, with subjects>
 gate:      green | FAILED: <which step> | ship: green (user-visible change)
+devlog:    entry appended to notes/chatbot-devlog.md | exempt (docs/chore/style/ci)
 checked:   git diff --staged clean (no secrets / internal notes); subjects are Conventional Commits, no emoji
 needs-you: <review preview deploy / approve merge to main> | nothing
 ```

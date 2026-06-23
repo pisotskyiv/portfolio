@@ -11,6 +11,7 @@ Personal portfolio site. The build is part of the showcase: test-driven, CI-gate
 - **Gate (run before every push; CI enforces it):** `npm run gate` (= lint + typecheck + test + build). Full pre-ship gate including E2E: `npm run ship`.
 - **E2E:** `npm run test:e2e` — run locally before shipping any user-visible feature. Lives in `e2e/`. Runs an axe accessibility scan (home page today; extend the scan per page/flow as they ship — tracked in `CLAUDE.local.md`).
 - **Git.** Conventional commits, small PRs. Push to `main` = production deploy; PR = preview deploy. No `Co-Authored-By` or AI-attribution trailer in commit messages or PR bodies.
+- **Devlog.** The build is part of the showcase. Every `feat`/`fix` shipping user-facing or architectural work appends a `notes/chatbot-devlog.md` entry (what / decision / problem) as the change lands — not reconstructed later. Enforced as a step + checkpoint in the `commit-pr` skill. `docs`/`chore` exempt.
 - **Accessible by default.** Semantic HTML, visible focus states on all interactive elements, axe scan passes, WCAG AA contrast minimums, `prefers-reduced-motion` respected. See `notes/styleguide/accessibility.md`.
 - **Responsive by default.** Mobile-first Tailwind classes. Every section tested at 375px and 1280px. No horizontal overflow at any viewport.
 

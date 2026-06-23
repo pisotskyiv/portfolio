@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/devlog-guard.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking devlog freshness"
+          }
+        ]
+      }
+    ]
+  }
+}
