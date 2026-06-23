@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import clsx from "clsx";
+import { GitHubIcon } from "@/components/ui/GitHubIcon";
 import { siteConfig } from "@/lib/site";
 import { NavLink } from "@/components/ui/NavLink";
 
@@ -38,14 +39,10 @@ export function Nav() {
         <div className="flex items-center gap-x-4 sm:gap-x-6">
           <NavLink href="#work">Work</NavLink>
           <NavLink href="#about">About</NavLink>
-          <span className="hidden sm:contents">
-            <NavLink href="#contact">Contact</NavLink>
-          </span>
-          <span className="hidden sm:contents">
-            <NavLink href={siteConfig.links.github} external>
-              GitHub
-            </NavLink>
-          </span>
+          <NavLink href="#contact">Contact</NavLink>
+          <NavLink href={siteConfig.links.github} external aria-label="GitHub">
+            <GitHubIcon size={15} className="text-accent transition-colors group-hover:text-accent-hover" />
+          </NavLink>
         </div>
       </nav>
     </header>
