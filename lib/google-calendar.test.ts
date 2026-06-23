@@ -61,6 +61,25 @@ describe("bookSlot", () => {
     expect(result.addToCalendarLink).toContain("action=TEMPLATE");
   });
 
+  it("omits the Meet link when MEET_URL is unset", async () => {
+    const result = await bookSlot({ ...VALID, now: BEFORE });
+    const arg = eventsInsert.mock.calls[0][0];
+    expect(arg.requestBody.location).toBeUndefined();
+    expect(result.meetUrl).toBeUndefined();
+    expect(new URL(result.addToCalendarLink).searchParams.has("location")).toBe(false);
+  });
+
+  it("injects MEET_URL onto the event location, description, and self-add link", async () => {
+    const meet = "https://meet.google.com/abc-defg-hij";
+    vi.stubEnv("MEET_URL", meet);
+    const result = await bookSlot({ ...VALID, now: BEFORE });
+    const arg = eventsInsert.mock.calls[0][0];
+    expect(arg.requestBody.location).toBe(meet);
+    expect(arg.requestBody.description).toContain(meet);
+    expect(result.meetUrl).toBe(meet);
+    expect(new URL(result.addToCalendarLink).searchParams.get("location")).toBe(meet);
+  });
+
   it("requests a scope set covering both the freebusy precheck and insert", async () => {
     // freebusy.query 403s under calendar.events alone, so the JWT must also
     // carry a read scope (or full calendar). Regression lock for that bug.

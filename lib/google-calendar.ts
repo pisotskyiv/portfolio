@@ -62,6 +62,8 @@ export interface BookingResult {
   start: string;
   end: string;
   addToCalendarLink: string;
+  /** Static reusable Google Meet URL (env `MEET_URL`), when configured. */
+  meetUrl?: string;
 }
 
 export interface BookSlotInput {
@@ -120,13 +122,21 @@ export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
   }
 
   const title = `Intro call — ${input.name}`;
-  const details = `Booked via the portfolio site by ${input.name} (${input.email}).`;
+  // A personal-Gmail service account can't create a per-meeting Meet link
+  // (needs Workspace + domain-wide delegation), so we ride a static reusable
+  // Meet room from env onto both the owner event and the recruiter's self-add
+  // link. Unset env -> no join link rather than a broken one.
+  const meetUrl = process.env.MEET_URL?.trim() || undefined;
+  const details = meetUrl
+    ? `Booked via the portfolio site by ${input.name} (${input.email}).\nJoin: ${meetUrl}`
+    : `Booked via the portfolio site by ${input.name} (${input.email}).`;
 
   await cal.events.insert({
     calendarId,
     requestBody: {
       summary: title,
       description: details,
+      location: meetUrl,
       start: { dateTime: start.toISOString() },
       end: { dateTime: end.toISOString() },
     },
@@ -135,6 +145,13 @@ export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
   return {
     start: start.toISOString(),
     end: end.toISOString(),
-    addToCalendarLink: googleCalendarLink({ title, details, start, end }),
+    addToCalendarLink: googleCalendarLink({
+      title,
+      details,
+      start,
+      end,
+      location: meetUrl,
+    }),
+    meetUrl,
   };
 }

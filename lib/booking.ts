@@ -49,13 +49,16 @@ function toBasicUTC(d: Date): string {
 /**
  * A "render?action=TEMPLATE" link the recruiter clicks to self-add the event to
  * their own calendar — our only invite path, since a personal-Gmail service
- * account cannot email invites.
+ * account cannot email invites. An optional `location` (e.g. the Google Meet
+ * URL) rides along as the event location so the self-added copy carries the
+ * join link too.
  */
 export function googleCalendarLink(opts: {
   title: string;
   details: string;
   start: Date;
   end: Date;
+  location?: string;
 }): string {
   const params = new URLSearchParams({
     action: "TEMPLATE",
@@ -63,5 +66,17 @@ export function googleCalendarLink(opts: {
     dates: `${toBasicUTC(opts.start)}/${toBasicUTC(opts.end)}`,
     details: opts.details,
   });
+  if (opts.location) params.set("location", opts.location);
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+/**
+ * Wrap a calendar link in our own redirect so a click is logged before the
+ * visitor lands on Google's "finalize" page. The endpoint host-allowlists the
+ * target, so it is never an open redirector. This is the closest signal we get
+ * to "they opened finalize" — not "they saved", which Google exposes no
+ * callback for.
+ */
+export function trackedCalLink(rawLink: string): string {
+  return `/api/cal-redirect?to=${encodeURIComponent(rawLink)}`;
 }

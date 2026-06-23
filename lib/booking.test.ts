@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { bookInput, slotWindow, googleCalendarLink, formatSlotLabel } from "./booking";
+import {
+  bookInput,
+  slotWindow,
+  googleCalendarLink,
+  trackedCalLink,
+  formatSlotLabel,
+} from "./booking";
 
 describe("bookInput", () => {
   it("accepts a well-formed date and time", () => {
@@ -48,6 +54,39 @@ describe("googleCalendarLink", () => {
     expect(params.get("dates")).toBe("20300115T170000Z/20300115T180000Z");
     expect(params.get("text")).toBe("Intro call — Jane");
     expect(params.get("details")).toBe("Booked by Jane (jane@x.com).");
+  });
+
+  it("omits the location param when no location is given", () => {
+    const url = googleCalendarLink({
+      title: "x",
+      details: "y",
+      start: new Date("2030-01-15T17:00:00.000Z"),
+      end: new Date("2030-01-15T18:00:00.000Z"),
+    });
+    expect(new URL(url).searchParams.has("location")).toBe(false);
+  });
+
+  it("carries a location (e.g. the Meet URL) when given", () => {
+    const meet = "https://meet.google.com/abc-defg-hij";
+    const url = googleCalendarLink({
+      title: "x",
+      details: "y",
+      start: new Date("2030-01-15T17:00:00.000Z"),
+      end: new Date("2030-01-15T18:00:00.000Z"),
+      location: meet,
+    });
+    expect(new URL(url).searchParams.get("location")).toBe(meet);
+  });
+});
+
+describe("trackedCalLink", () => {
+  it("wraps a calendar link in the cal-redirect tracker, url-encoded", () => {
+    const raw = "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Hi";
+    const tracked = trackedCalLink(raw);
+    expect(tracked.startsWith("/api/cal-redirect?to=")).toBe(true);
+    // `to` round-trips back to the original link
+    const to = new URLSearchParams(tracked.split("?")[1]).get("to");
+    expect(to).toBe(raw);
   });
 });
 

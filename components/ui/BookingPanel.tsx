@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import { ContactFallback } from "./ContactFallback";
+import { trackedCalLink } from "@/lib/booking";
 import { publishBookingResult } from "@/lib/booking-broadcast";
+
+/** Seconds the visitor sees the "you must finalize" notice before we redirect. */
+const REDIRECT_SECONDS = 5;
 
 interface BookingPanelProps {
   date: string;
@@ -32,7 +36,30 @@ export function BookingPanel({
 }: BookingPanelProps) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [link, setLink] = useState<string | null>(null);
+  const [meetUrl, setMeetUrl] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(REDIRECT_SECONDS);
   const [message, setMessage] = useState("");
+  const finalizeRef = useRef<HTMLAnchorElement>(null);
+
+  // Once booked, hold on the "you must finalize" notice for a few seconds so the
+  // visitor reads it, then follow the `Continue now` link for them — a same-tab
+  // navigation, so no pop-up blocker (unlike opening a new tab after the await).
+  // Auto-clicking the real link keeps one navigation path; `Continue now` also
+  // lets them skip the wait (timing control).
+  useEffect(() => {
+    if (phase !== "done" || !link) return;
+    const tick = setInterval(
+      () => setCountdown((n) => (n > 0 ? n - 1 : 0)),
+      1000,
+    );
+    const redirect = setTimeout(() => {
+      finalizeRef.current?.click();
+    }, REDIRECT_SECONDS * 1000);
+    return () => {
+      clearInterval(tick);
+      clearTimeout(redirect);
+    };
+  }, [phase, link]);
 
   if (!signedIn) {
     return (
@@ -61,10 +88,12 @@ export function BookingPanel({
         body: JSON.stringify({ date, time }),
       });
       if (res.ok) {
-        const data = (await res.json()) as { addToCalendarLink: string };
-        setLink(data.addToCalendarLink);
+        const data = (await res.json()) as { addToCalendarLink: string; meetUrl?: string };
+        const tracked = trackedCalLink(data.addToCalendarLink);
+        setLink(tracked);
+        setMeetUrl(data.meetUrl ?? null);
         setPhase("done");
-        publishBookingResult({ status: "success", when: whenLabel, link: data.addToCalendarLink });
+        publishBookingResult({ status: "success", when: whenLabel, link: tracked });
         return;
       }
       setMessage(
@@ -84,15 +113,26 @@ export function BookingPanel({
   if (phase === "done" && link) {
     return (
       <div className="flex flex-col gap-2 text-sm text-text">
-        <p>Confirmed on our end. Add it to your calendar to lock it in:</p>
-        <a
-          href={link}
-          target="_blank"
-          rel="noreferrer"
-          className="text-accent hover:underline focus-ring"
-        >
-          Add to your Google Calendar
+        <p role="status">
+          Booked on our end — but to schedule the meeting you must finalize it
+          yourself. On the next screen, make sure to create the event.
+        </p>
+        <p aria-hidden="true" className="text-muted">
+          Redirecting in {countdown}s…
+        </p>
+        <a ref={finalizeRef} href={link} className="text-accent hover:underline focus-ring">
+          Continue now
         </a>
+        {meetUrl && (
+          <a
+            href={meetUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-accent hover:underline focus-ring"
+          >
+            Join link (Google Meet)
+          </a>
+        )}
       </div>
     );
   }
