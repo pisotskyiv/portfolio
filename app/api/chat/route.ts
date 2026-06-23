@@ -7,6 +7,7 @@ import {
 } from "ai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 import { getAvailability } from "@/lib/google-calendar";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -44,6 +45,12 @@ function getModel() {
     console.log(`[chat] provider=openai model=${model}`);
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
     return openai(model);
+  }
+  if (provider === "gemini") {
+    const model = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
+    console.log(`[chat] provider=gemini model=${model}`);
+    const google = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
+    return google(model);
   }
   const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
   console.log(`[chat] provider=anthropic model=${model}`);

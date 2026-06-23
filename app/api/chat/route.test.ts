@@ -13,6 +13,7 @@ vi.mock("@/lib/system-prompt", () => ({
 }));
 vi.mock("@ai-sdk/anthropic", () => ({ createAnthropic: () => () => "model" }));
 vi.mock("@ai-sdk/openai", () => ({ createOpenAI: () => () => "model" }));
+vi.mock("@ai-sdk/google", () => ({ createGoogleGenerativeAI: () => () => "model" }));
 vi.mock("ai", () => ({
   streamText: (...args: unknown[]) => streamTextMock(...args),
   convertToModelMessages: (m: unknown) => m,
@@ -103,6 +104,17 @@ describe("POST /api/chat", () => {
       maxOutputTokens: 800,
       system: "SYSTEM",
     });
+  });
+
+  it("streams successfully when AI_PROVIDER=gemini", async () => {
+    process.env.AI_PROVIDER = "gemini";
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+    const { POST } = await import("./route");
+    const res = await POST(makeRequest([userMessage("hi")]));
+    expect(res.status).toBe(200);
+    expect(streamTextMock).toHaveBeenCalledOnce();
+    delete process.env.AI_PROVIDER;
+    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   });
 
   it("rate-limits on the forwarded client IP", async () => {
