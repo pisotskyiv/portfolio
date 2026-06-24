@@ -22,7 +22,12 @@ vi.mock("googleapis", () => ({
   },
 }));
 
-import { bookSlot, BookingError } from "./google-calendar";
+import {
+  bookSlot,
+  BookingError,
+  getAvailability,
+  loadServiceAccountKey,
+} from "./google-calendar";
 
 const VALID = {
   name: "Jane Recruiter",
@@ -40,6 +45,32 @@ beforeEach(() => {
   vi.stubEnv("GOOGLE_PRIVATE_KEY", "key");
   freebusyQuery.mockResolvedValue({ data: { calendars: { "primary-cal": { busy: [] } } } });
   eventsInsert.mockResolvedValue({ data: { id: "evt1", htmlLink: "https://cal/evt1" } });
+});
+
+describe("loadServiceAccountKey", () => {
+  const PEM =
+    "-----BEGIN PRIVATE KEY-----\nMIIBVgIBADANBg==\n-----END PRIVATE KEY-----\n";
+
+  it("converts literal \\n and strips wrapping double quotes (the prod 503)", () => {
+    // Mirrors a value pasted into Vercel straight from a .env line: surrounding
+    // quotes kept + newlines as literal \n. Both must be normalised or OpenSSL
+    // throws ERR_OSSL_UNSUPPORTED.
+    vi.stubEnv("GOOGLE_PRIVATE_KEY_B64", "");
+    vi.stubEnv(
+      "GOOGLE_PRIVATE_KEY",
+      '"-----BEGIN PRIVATE KEY-----\\nMIIBVgIBADANBg==\\n-----END PRIVATE KEY-----\\n"',
+    );
+    const key = loadServiceAccountKey();
+    expect(key).toBe(PEM);
+    expect(key).not.toContain('"');
+    expect(key).not.toContain("\\n");
+  });
+
+  it("prefers GOOGLE_PRIVATE_KEY_B64 when set", () => {
+    vi.stubEnv("GOOGLE_PRIVATE_KEY_B64", Buffer.from(PEM).toString("base64"));
+    vi.stubEnv("GOOGLE_PRIVATE_KEY", "ignored-raw-value");
+    expect(loadServiceAccountKey()).toBe(PEM);
+  });
 });
 
 describe("bookSlot", () => {
@@ -117,5 +148,64 @@ describe("bookSlot", () => {
     expect(err).toBeInstanceOf(BookingError);
     expect(err.code).toBe("taken");
     expect(eventsInsert).not.toHaveBeenCalled();
+  });
+
+  it("warns (but still books) when the precheck freebusy reports a calendar error", async () => {
+    // An unreadable calendar comes back with `errors` and no `busy`, so it
+    // looks free. We must not silently treat that as "available" — surface it.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    freebusyQuery.mockResolvedValue({
+      data: {
+        calendars: {
+          "primary-cal": { errors: [{ domain: "global", reason: "notFound" }] },
+        },
+      },
+    });
+    await bookSlot({ ...VALID, now: BEFORE });
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("primary-cal"),
+      expect.anything(),
+    );
+    expect(eventsInsert).toHaveBeenCalledOnce();
+    warn.mockRestore();
+  });
+});
+
+describe("getAvailability free/busy warnings", () => {
+  it("warns when a calendar is unreadable and keeps serving the merge", async () => {
+    // The exact production symptom: work calendar not shared with the service
+    // account -> notFound error, its busy times silently dropped.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv("GOOGLE_CALENDAR_ID_WORK", "work-cal");
+    freebusyQuery.mockResolvedValue({
+      data: {
+        calendars: {
+          "primary-cal": { busy: [] },
+          "work-cal": { errors: [{ domain: "global", reason: "notFound" }] },
+        },
+      },
+    });
+    await getAvailability(new Date("2030-01-13T12:00:00Z"));
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("work-cal"),
+      expect.anything(),
+    );
+    warn.mockRestore();
+  });
+
+  it("does not warn when every calendar is readable", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv("GOOGLE_CALENDAR_ID_WORK", "work-cal");
+    freebusyQuery.mockResolvedValue({
+      data: {
+        calendars: {
+          "primary-cal": { busy: [] },
+          "work-cal": { busy: [] },
+        },
+      },
+    });
+    await getAvailability(new Date("2030-01-13T12:00:00Z"));
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 });

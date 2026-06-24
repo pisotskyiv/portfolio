@@ -5,6 +5,71 @@ import { DAY_META, WEEKLY_SLOTS } from "./availability";
 import { buildWeek, getBusinessDays, isBlocked } from "./slot-time";
 import { slotWindow, googleCalendarLink } from "./booking";
 
+/**
+ * Resolve the service-account private key from env, tolerant of how the value
+ * survives different hosts. Preference order:
+ *   1. GOOGLE_PRIVATE_KEY_B64 — base64 of the raw PEM. No newline or quote
+ *      fragility; the robust way to store a PEM in a single-line env UI.
+ *   2. GOOGLE_PRIVATE_KEY — raw PEM, possibly with literal `\n` and/or a layer
+ *      of wrapping quotes. Next's dotenv strips quotes locally, so a quoted
+ *      value works in dev but 503s in prod (ERR_OSSL_UNSUPPORTED / DECODER
+ *      routines::unsupported) on hosts like Vercel that keep the quotes — hence
+ *      we strip them here too.
+ */
+export function loadServiceAccountKey(): string {
+  const b64 = process.env.GOOGLE_PRIVATE_KEY_B64?.trim();
+  if (b64) return Buffer.from(b64, "base64").toString("utf8");
+
+  let key = process.env.GOOGLE_PRIVATE_KEY ?? "";
+  if (key.length >= 2) {
+    const quote = key[0];
+    if ((quote === '"' || quote === "'") && key.at(-1) === quote) {
+      key = key.slice(1, -1);
+    }
+  }
+  return key.replace(/\\n/g, "\n");
+}
+
+function calendarAuth(scopes: string[]) {
+  return new google.auth.JWT({
+    email: process.env.GOOGLE_CLIENT_EMAIL,
+    key: loadServiceAccountKey(),
+    scopes,
+  });
+}
+
+type FreeBusyCalendars =
+  | {
+      [id: string]: {
+        errors?: Array<{ domain?: string | null; reason?: string | null }> | null;
+      };
+    }
+  | null
+  | undefined;
+
+/**
+ * freebusy.query does NOT fail the whole request when one calendar is
+ * unreadable — it returns that calendar with an `errors` array and no `busy`,
+ * so its events silently vanish from the merge and the owner looks free when
+ * they're actually booked. The usual cause: a calendar (commonly the work one)
+ * not shared with the service account `GOOGLE_CLIENT_EMAIL`, giving `notFound`
+ * / `forbidden`. Surface every per-calendar failure as a loud, greppable warn
+ * so this is visible in production logs instead of failing silent.
+ */
+function warnOnCalendarErrors(
+  calendars: FreeBusyCalendars,
+  context: string,
+): void {
+  for (const [id, cal] of Object.entries(calendars ?? {})) {
+    if (cal.errors && cal.errors.length > 0) {
+      console.warn(
+        `[availability] freebusy unreadable for calendar ${id} (${context}); its busy times are missing — check the calendar is shared with ${process.env.GOOGLE_CLIENT_EMAIL ?? "the service account"}`,
+        cal.errors,
+      );
+    }
+  }
+}
+
 export async function getAvailability(
   now: Date = new Date(),
   weekOffset = 0,
@@ -12,11 +77,9 @@ export async function getAvailability(
   const days = getBusinessDays(now, 5, weekOffset);
 
   try {
-    const auth = new google.auth.JWT({
-      email: process.env.GOOGLE_CLIENT_EMAIL,
-      key: (process.env.GOOGLE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
-      scopes: ["https://www.googleapis.com/auth/calendar.readonly"],
-    });
+    const auth = calendarAuth([
+      "https://www.googleapis.com/auth/calendar.readonly",
+    ]);
     const cal = google.calendar({ version: "v3", auth });
 
     const timeMin = new Date(`${days[0].dateStr}T00:00:00Z`).toISOString();
@@ -32,6 +95,7 @@ export async function getAvailability(
     const res = await cal.freebusy.query({
       requestBody: { timeMin, timeMax, items: calIds.map((id) => ({ id })) },
     });
+    warnOnCalendarErrors(res.data.calendars, "availability read");
 
     const busyBlocks = Object.values(res.data.calendars ?? {}).flatMap(
       (c) => (c.busy ?? []) as Array<{ start: string; end: string }>,
@@ -93,17 +157,13 @@ export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
     throw new BookingError("past", "That time is in the past.");
   }
 
-  const auth = new google.auth.JWT({
-    email: process.env.GOOGLE_CLIENT_EMAIL,
-    key: (process.env.GOOGLE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n"),
-    // events.insert needs calendar.events; the freebusy precheck below is NOT
-    // covered by that scope and 403s ("insufficient authentication scopes")
-    // without a read scope, so request both.
-    scopes: [
-      "https://www.googleapis.com/auth/calendar.events",
-      "https://www.googleapis.com/auth/calendar.readonly",
-    ],
-  });
+  // events.insert needs calendar.events; the freebusy precheck below is NOT
+  // covered by that scope and 403s ("insufficient authentication scopes")
+  // without a read scope, so request both.
+  const auth = calendarAuth([
+    "https://www.googleapis.com/auth/calendar.events",
+    "https://www.googleapis.com/auth/calendar.readonly",
+  ]);
   const cal = google.calendar({ version: "v3", auth });
   const calendarId = process.env.GOOGLE_CALENDAR_ID_PERSONAL ?? "primary";
 
@@ -114,6 +174,7 @@ export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
       items: [{ id: calendarId }],
     },
   });
+  warnOnCalendarErrors(fb.data.calendars, "booking precheck");
   const busy = Object.values(fb.data.calendars ?? {}).flatMap(
     (c) => (c.busy ?? []) as Array<{ start: string; end: string }>,
   );

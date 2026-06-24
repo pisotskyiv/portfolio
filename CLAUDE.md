@@ -38,6 +38,7 @@ Wiki: `notes/styleguide/` (gitignored). Load only the file you need — never re
 | useEffect, useMemo, custom hooks | `notes/styleguide/hooks.md` |
 | useState, server vs client state | `notes/styleguide/state.md` |
 | App Router, Server Components, images, fonts | `notes/styleguide/nextjs.md` |
+| Error handling, fail modes, typed errors, logging | `notes/styleguide/error-handling.md` |
 | Component structure, exports, event handlers | `notes/styleguide/components.md` |
 | Tailwind classes, clsx, CSS variables, motion, responsive | `notes/styleguide/tailwind.md` |
 | Semantic HTML, ARIA, focus, contrast, axe | `notes/styleguide/accessibility.md` |
