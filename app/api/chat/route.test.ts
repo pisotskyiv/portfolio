@@ -2,7 +2,28 @@ import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import type { UIMessage } from "ai";
 import { checkRateLimit } from "@/lib/rate-limit";
 
-const streamTextMock = vi.fn();
+// Hoisted so the vi.mock factories below can reference them. Each provider's
+// builder returns a minimal model OBJECT (createFallbackModel Proxies the leader,
+// so it must be an object) tagged with `provider` for assertions.
+const { streamTextMock, anthropicBuild, googleBuild, openaiBuild } = vi.hoisted(
+  () => {
+    const makeBuilder = (provider: string) =>
+      vi.fn((modelId: string) => ({
+        specificationVersion: "v2",
+        provider,
+        modelId,
+        supportedUrls: {},
+        doStream: () => Promise.resolve(),
+        doGenerate: () => Promise.resolve(),
+      }));
+    return {
+      streamTextMock: vi.fn(),
+      anthropicBuild: makeBuilder("anthropic"),
+      googleBuild: makeBuilder("gemini"),
+      openaiBuild: makeBuilder("openai"),
+    };
+  },
+);
 
 vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn() }));
 vi.mock("@/lib/google-calendar", () => ({
@@ -11,9 +32,11 @@ vi.mock("@/lib/google-calendar", () => ({
 vi.mock("@/lib/system-prompt", () => ({
   getSystemPrompt: vi.fn().mockResolvedValue("SYSTEM"),
 }));
-vi.mock("@ai-sdk/anthropic", () => ({ createAnthropic: () => () => "model" }));
-vi.mock("@ai-sdk/openai", () => ({ createOpenAI: () => () => "model" }));
-vi.mock("@ai-sdk/google", () => ({ createGoogleGenerativeAI: () => () => "model" }));
+vi.mock("@ai-sdk/anthropic", () => ({ createAnthropic: () => anthropicBuild }));
+vi.mock("@ai-sdk/openai", () => ({ createOpenAI: () => openaiBuild }));
+vi.mock("@ai-sdk/google", () => ({
+  createGoogleGenerativeAI: () => googleBuild,
+}));
 vi.mock("ai", () => ({
   streamText: (...args: unknown[]) => streamTextMock(...args),
   convertToModelMessages: (m: unknown) => m,
@@ -42,9 +65,21 @@ function makeRequest(
   });
 }
 
+/** The leading provider of the model handed to streamText (the wrapper Proxies
+ * the leader, so `.provider` reports it). */
+function leadProvider(): string {
+  return (streamTextMock.mock.calls[0][0] as { model: { provider: string } })
+    .model.provider;
+}
+
 beforeEach(() => {
+  // Reset module state (the route holds an in-memory breaker) so each test starts
+  // clean.
+  vi.resetModules();
   vi.clearAllMocks();
   delete process.env.CHAT_ENABLED;
+  delete process.env.AI_PROVIDER;
+  delete process.env.AI_FALLBACK;
   rateLimitMock.mockResolvedValue({
     success: true,
     remaining: 9,
@@ -106,15 +141,33 @@ describe("POST /api/chat", () => {
     });
   });
 
-  it("streams successfully when AI_PROVIDER=gemini", async () => {
-    process.env.AI_PROVIDER = "gemini";
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY = "test-key";
+  it("defaults to Gemini leading with an Anthropic fallback, failing fast", async () => {
     const { POST } = await import("./route");
-    const res = await POST(makeRequest([userMessage("hi")]));
-    expect(res.status).toBe(200);
-    expect(streamTextMock).toHaveBeenCalledOnce();
-    delete process.env.AI_PROVIDER;
-    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    await POST(makeRequest([userMessage("hi")]));
+    expect(leadProvider()).toBe("gemini");
+    expect(googleBuild).toHaveBeenCalled();
+    expect(anthropicBuild).toHaveBeenCalled();
+    // Two providers in the chain → wrapper handles failover, streamText fails fast.
+    expect(streamTextMock.mock.calls[0][0]).toMatchObject({ maxRetries: 0 });
+  });
+
+  it("uses a single provider with real retries when AI_FALLBACK=none", async () => {
+    process.env.AI_PROVIDER = "anthropic";
+    process.env.AI_FALLBACK = "none";
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    expect(leadProvider()).toBe("anthropic");
+    expect(googleBuild).not.toHaveBeenCalled();
+    expect(streamTextMock.mock.calls[0][0]).toMatchObject({ maxRetries: 2 });
+  });
+
+  it("honors a custom fallback (AI_FALLBACK=openai)", async () => {
+    process.env.AI_FALLBACK = "openai";
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    expect(leadProvider()).toBe("gemini");
+    expect(openaiBuild).toHaveBeenCalled();
+    expect(anthropicBuild).not.toHaveBeenCalled();
   });
 
   it("rate-limits on the forwarded client IP", async () => {

@@ -13,6 +13,13 @@ import { getAvailability } from "@/lib/google-calendar";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSystemPrompt } from "@/lib/system-prompt";
 import { MAX_INPUT_CHARS } from "@/lib/chat-limits";
+import {
+  type ChatProvider,
+  type ResolvedModel,
+  createBreaker,
+  orderProviders,
+  createFallbackModel,
+} from "@/lib/chat-fallback";
 
 // googleapis (in the scheduler tool) is Node-only, and we stream — pin Node
 // and cap the request so the route can't hang or run on Edge.
@@ -39,24 +46,41 @@ function clientIp(req: Request): string {
   return forwarded || req.headers.get("x-real-ip") || "anonymous";
 }
 
-function getModel() {
-  const provider = process.env.AI_PROVIDER ?? "anthropic";
+// Per-instance failover state. Default: Gemini (free) primary, Anthropic
+// fallback. Override with AI_PROVIDER / AI_FALLBACK; AI_FALLBACK=none disables
+// failover. When Gemini's free quota 429s, the breaker routes to Anthropic for a
+// cooldown instead of re-probing the blown quota on every request.
+const breaker = createBreaker();
+
+function buildModel(provider: ChatProvider): ResolvedModel {
   if (provider === "openai") {
     const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
-    console.log(`[chat] provider=openai model=${model}`);
     const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
     return openai(model);
   }
   if (provider === "gemini") {
     const model = process.env.GEMINI_MODEL ?? "gemini-2.0-flash";
-    console.log(`[chat] provider=gemini model=${model}`);
-    const google = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
+    const google = createGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    });
     return google(model);
   }
   const model = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
-  console.log(`[chat] provider=anthropic model=${model}`);
   const anthropic = createAnthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   return anthropic(model);
+}
+
+function resolveProviders(): {
+  primary: ChatProvider;
+  fallback: ChatProvider | null;
+} {
+  const primary = (process.env.AI_PROVIDER ?? "gemini") as ChatProvider;
+  const fallbackEnv = process.env.AI_FALLBACK ?? "anthropic";
+  const fallback =
+    fallbackEnv === "none" || fallbackEnv === primary
+      ? null
+      : (fallbackEnv as ChatProvider);
+  return { primary, fallback };
 }
 
 export async function POST(req: Request) {
@@ -90,8 +114,44 @@ export async function POST(req: Request) {
       );
     }
 
+    const { primary, fallback } = resolveProviders();
+    // Log the switch BACK to the primary once its cooldown lapses, so the full
+    // failover lifecycle (trip -> fallback -> recover) is visible in prod logs.
+    if (breaker.takeRecovery(primary)) {
+      console.warn(`[chat] provider switch: ${primary} recovered, primary restored`);
+    }
+
+    // Order providers (skipping any in cooldown) and wrap them so a transient
+    // failure on the leader falls over to the next one inside the same request —
+    // the client just sees the loading state until the fallback's first token.
+    const order = orderProviders({
+      primary,
+      fallback,
+      isDown: (p) => breaker.isDown(p),
+    });
+    console.log(`[chat] providers=[${order.join(", ")}]`);
+
+    const model = createFallbackModel(order.map(buildModel), {
+      onFailover: (failedIndex, err) => {
+        const failed = order[failedIndex];
+        const next = order[failedIndex + 1];
+        breaker.trip(failed);
+        const status =
+          err && typeof err === "object" && "statusCode" in err
+            ? (err as { statusCode?: unknown }).statusCode
+            : "unknown";
+        console.warn(
+          `[chat] provider switch: ${failed} failed (status=${status}), failing over to ${next} silently`,
+        );
+      },
+    });
+
     const result = streamText({
-      model: getModel(),
+      model,
+      // The wrapper handles failover, so don't let streamText re-run the whole
+      // chain on a transient error when a fallback exists. A lone provider keeps
+      // real retries.
+      maxRetries: order.length > 1 ? 0 : 2,
       system: await getSystemPrompt(),
       messages: await convertToModelMessages(messages),
       stopWhen: stepCountIs(3),
@@ -110,10 +170,12 @@ export async function POST(req: Request) {
     });
 
     return result.toUIMessageStreamResponse({
+      // Failover is handled inside the wrapped model, so reaching here means
+      // every provider in the chain failed (or a non-transient error surfaced).
       // Errors are masked by default; surface a friendly, non-leaking message
       // (the client renders a fallback bubble on `error`).
       onError: (err: unknown) => {
-        console.error("[chat] stream error", err);
+        console.error("[chat] all providers failed", err);
         return "This demo hit an error. Try again in a moment, or reach me via the links on the site.";
       },
     });
