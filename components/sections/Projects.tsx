@@ -36,7 +36,10 @@ function ProjectLinks({ project }: { project: Project }) {
           aria-label={`View ${project.title} on GitHub`}
           className="group inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-text focus-ring"
         >
-          <GitHubIcon size={13} className="text-accent transition-colors group-hover:text-accent-hover" />
+          <GitHubIcon
+            size={13}
+            className="text-accent transition-colors group-hover:text-accent-hover"
+          />
         </a>
       )}
     </div>
@@ -47,17 +50,14 @@ export function Projects() {
   return (
     <section id="work" aria-labelledby="work-heading" className="section">
       <div className="container-page flex flex-col gap-10">
-        <h2
-          id="work-heading"
-          className="eyebrow"
-        >
+        <h2 id="work-heading" className="eyebrow">
           Selected Work
         </h2>
         <ul className="flex flex-col gap-4" role="list">
           {projects.map((project) => (
             <li
               key={project.slug}
-              className="flex flex-col gap-3 border border-transparent bg-surface p-8 transition-colors hover:border-accent"
+              className="flex flex-col gap-3 border border-transparent bg-surface p-8 transition-colors duration-300 ease-in-out hover:border-accent"
             >
               {project.highlight && (
                 <p className="text-xs font-medium uppercase tracking-badge text-accent">
@@ -68,6 +68,7 @@ export function Projects() {
               <p className="text-base leading-relaxed text-muted">
                 {project.description}
               </p>
+              <hr className="border-border" />
               <ul
                 className="flex flex-wrap gap-2"
                 aria-label="Technologies used"
@@ -76,7 +77,7 @@ export function Projects() {
                 {project.tech.map((tag) => (
                   <li
                     key={tag}
-                    className="border border-border text-[13px] text-muted"
+                    className="cursor-default text-[13px] text-muted transition-colors hover:text-text"
                   >
                     {tag}
                   </li>
@@ -85,13 +86,18 @@ export function Projects() {
               <ProjectLinks project={project} />
 
               {project.children && project.children.length > 0 && (
-                <ul className="mt-2 flex flex-col gap-3 border-l-2 border-accent/30 pl-4" role="list">
+                <ul
+                  className="mt-2 flex flex-col gap-3 border-l-2 border-accent/30 pl-4"
+                  role="list"
+                >
                   {project.children.map((child) => (
                     <li
                       key={child.slug}
-                      className="flex flex-col gap-2 rounded border border-border px-4 py-3"
+                      className="flex flex-col gap-2 rounded bg-raised px-4 py-3"
                     >
-                      <h4 className="text-base font-semibold text-text">{child.title}</h4>
+                      <h4 className="text-base font-semibold text-text">
+                        {child.title}
+                      </h4>
                       <p className="text-sm leading-relaxed text-muted">
                         {child.description}
                       </p>
@@ -103,7 +109,7 @@ export function Projects() {
                         {child.tech.map((tag) => (
                           <li
                             key={tag}
-                            className="border border-border text-[13px] text-muted"
+                            className="cursor-default text-[13px] text-muted transition-colors hover:text-text"
                           >
                             {tag}
                           </li>

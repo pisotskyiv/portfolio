@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { Projects } from "./Projects";
 
@@ -30,16 +30,10 @@ describe("Projects", () => {
     expect(screen.getByText("This Portfolio")).toBeInTheDocument();
   });
 
-  it("renders LangGraph RAG Citation Engine title", () => {
-    render(<Projects />);
-    expect(screen.getByText("LangGraph RAG Citation Engine")).toBeInTheDocument();
-  });
-
   it("renders tech tags", () => {
     render(<Projects />);
     expect(screen.getAllByText("Next.js").length).toBeGreaterThan(0);
     expect(screen.getAllByText("MongoDB").length).toBeGreaterThan(0);
-    expect(screen.getByText("LangGraph")).toBeInTheDocument();
   });
 
   it("renders project descriptions", () => {
@@ -99,14 +93,6 @@ describe("Projects", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("renders LangGraph as a sub-entry within the CTD RAG card", () => {
-    render(<Projects />);
-    const ctdCard = screen.getByText("CTD RAG Chatbot").closest("li")!;
-    expect(
-      within(ctdCard).getByText("LangGraph RAG Citation Engine"),
-    ).toBeInTheDocument();
-  });
-
   it("renders 3 top-level project cards", () => {
     render(<Projects />);
     const outerList = screen.getByText("CTD RAG Chatbot").closest("li")
@@ -114,13 +100,10 @@ describe("Projects", () => {
     expect(outerList?.children.length).toBe(3);
   });
 
-  it("renders LangGraph case study link within CTD RAG card", () => {
+  it("does not render LangGraph as a sub-entry within CTD RAG card", () => {
     render(<Projects />);
-    const ctdCard = screen.getByText("CTD RAG Chatbot").closest("li")!;
     expect(
-      within(ctdCard).getByRole("link", {
-        name: /read langgraph rag citation engine case study/i,
-      }),
-    ).toHaveAttribute("href", "/work/ctd-rag-chatbot");
+      screen.queryByText("LangGraph RAG Citation Engine"),
+    ).not.toBeInTheDocument();
   });
 });
