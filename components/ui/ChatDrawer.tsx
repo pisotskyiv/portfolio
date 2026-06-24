@@ -74,7 +74,7 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="fixed inset-x-3 bottom-3 z-60 flex h-[82vh] flex-col overflow-hidden rounded-2xl border border-accent/30 bg-elevated sm:inset-auto sm:h-auto sm:bottom-24 sm:right-6 sm:w-110 sm:rounded-xl sm:shadow-2xl sm:highlight-border"
+            className="fixed inset-x-3 bottom-3 z-60 flex h-[82vh] flex-col overflow-hidden rounded-2xl border border-accent/30 bg-elevated sm:inset-auto sm:h-auto sm:bottom-6 sm:right-6 sm:w-110 sm:rounded-xl sm:shadow-2xl sm:highlight-border"
           >
             <div
               className={clsx(
