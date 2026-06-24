@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { GitHubIcon } from "@/components/ui/GitHubIcon";
 import { siteConfig } from "@/lib/site";
 import { NavLink } from "@/components/ui/NavLink";
+import { openChat } from "@/lib/chat-events";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -27,7 +28,7 @@ export function Nav() {
     >
       <nav
         aria-label="Main navigation"
-        className="mx-auto flex h-full max-w-5xl items-center justify-between px-4 sm:px-8 lg:px-12"
+        className="container-page flex h-full items-center justify-between"
       >
         <Link
           href="/"
@@ -39,7 +40,15 @@ export function Nav() {
         <div className="flex items-center gap-x-4 sm:gap-x-6">
           <NavLink href="#work">Work</NavLink>
           <NavLink href="#about">About</NavLink>
-          <NavLink href="#contact">Contact</NavLink>
+          <button
+            type="button"
+            onClick={openChat}
+            aria-haspopup="dialog"
+            aria-controls="chat-drawer"
+            className="group text-[15px] font-medium text-muted transition-colors hover:text-text focus-ring"
+          >
+            Contact
+          </button>
           <NavLink href={siteConfig.links.github} external aria-label="GitHub">
             <GitHubIcon size={15} className="text-accent transition-colors group-hover:text-accent-hover" />
           </NavLink>

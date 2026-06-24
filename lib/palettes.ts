@@ -44,13 +44,13 @@ export const obsidian: Palette = {
 
 export const copper: Palette = {
   name: "copper",
-  bg: "#100D0A",        // warm near-black
-  surface: "#2A1F17",   // warm dark
-  accent: "#B45309",    // amber-700 (copper tone)
+  bg: "#0F0C09",        // warm near-black (matches @theme)
+  surface: "#1C150F",   // card surface (matches @theme)
+  accent: "#C3753A",    // copper tone (matches @theme)
   accentHover: "#92400E", // amber-800
   text: "#F5EDE4",      // warm off-white
-  muted: "#8C7D74",     // warm gray
-  border: "#2A211A",
+  muted: "#C2B4A6",     // warm gray (matches @theme)
+  border: "#3A2E24",    // visible border (matches @theme)
 };
 
 export const voltage: Palette = {

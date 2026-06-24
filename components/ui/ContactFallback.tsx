@@ -19,7 +19,7 @@ export function ContactFallback({
   className,
 }: ContactFallbackProps) {
   return (
-    <p className={clsx("text-[11px] text-muted", className)}>
+    <p className={clsx("text-xs text-muted", className)}>
       {message}{" "}
       <a
         href={siteConfig.links.linkedin}

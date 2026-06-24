@@ -10,7 +10,7 @@ export function Hero() {
       aria-labelledby="hero-heading"
       className="section flex min-h-[calc(100svh-4rem)] items-center"
     >
-      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 items-center gap-16 lg:grid-cols-[3fr_2fr]">
+      <div className="container-page grid grid-cols-1 items-center gap-16 lg:grid-cols-[3fr_2fr]">
         <div className="flex flex-col gap-6">
           <p
             className="eyebrow"
@@ -23,7 +23,7 @@ export function Hero() {
           >
             {siteConfig.name}
           </h1>
-          <p className="max-w-lg text-base leading-relaxed text-muted sm:text-lg">
+          <p className="max-w-lg text-lg leading-relaxed text-text">
             {siteConfig.shortPitch}
           </p>
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">

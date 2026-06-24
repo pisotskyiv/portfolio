@@ -46,12 +46,17 @@ describe("Nav", () => {
     );
   });
 
-  it("links Contact to contact section", () => {
+  it("Contact is a button (not a link) that opens the chat", () => {
     render(<Nav />);
-    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute(
-      "href",
-      "#contact",
-    );
+    expect(screen.queryByRole("link", { name: "Contact" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Contact" })).toBeInTheDocument();
+  });
+
+  it("Contact button has aria-haspopup dialog and aria-controls chat-drawer", () => {
+    render(<Nav />);
+    const btn = screen.getByRole("button", { name: "Contact" });
+    expect(btn).toHaveAttribute("aria-haspopup", "dialog");
+    expect(btn).toHaveAttribute("aria-controls", "chat-drawer");
   });
 
   it("has GitHub link with correct URL", () => {

@@ -12,23 +12,11 @@ export type Project = {
   github?: string;
   live?: string;
   caseStudy?: string;
+  /** Nested sub-projects rendered inside this card */
+  children?: Project[];
 };
 
 export const projects: Project[] = [
-  {
-    slug: "langgraph-rag-citation-engine",
-    title: "LangGraph RAG Citation Engine",
-    role: "Full-Stack Developer, Code the Dream",
-    description:
-      "Replaced a single-pass LangChain pipeline with a stateful 4-node LangGraph that validates citations sentence-by-sentence before committing any answer. Reduced response inaccuracy from 30%+ via structured validation, retry loops, and rolling conversation summarization.",
-    bullets: [
-      "Designed and implemented a 4-node LangGraph with conditional routing: conversation summarization, MMR retrieval, LLM generation, and a two-layer citation validator with up to 2 retries.",
-      "Built a Locust benchmark script replaying real production conversations message-by-message against the new graph route to measure improvement at scale.",
-      "Wrote three LLM-as-judge evaluators in Langfuse — retrieval precision, citation faithfulness, and answer correctness — and produced the six-phase production hardening roadmap the team now executes.",
-    ],
-    tech: ["LangGraph", "LangChain", "MongoDB", "OpenAI", "Langfuse", "Python", "Next.js", "TypeScript"],
-    caseStudy: "/work/langgraph-rag-citation-engine",
-  },
   {
     slug: "ctd-rag-chatbot",
     title: "CTD RAG Chatbot",
@@ -42,6 +30,22 @@ export const projects: Project[] = [
     ],
     tech: ["Next.js", "TypeScript", "MongoDB", "Langfuse", "LangChain", "OpenAI"],
     caseStudy: "/work/ctd-rag-chatbot",
+    children: [
+      {
+        slug: "langgraph-rag-citation-engine",
+        title: "LangGraph RAG Citation Engine",
+        role: "Full-Stack Developer, Code the Dream",
+        description:
+          "Replaced a single-pass LangChain pipeline with a stateful 4-node LangGraph that validates citations sentence-by-sentence before committing any answer. Reduced response inaccuracy from 30%+ via structured validation, retry loops, and rolling conversation summarization.",
+        bullets: [
+          "Designed and implemented a 4-node LangGraph with conditional routing: conversation summarization, MMR retrieval, LLM generation, and a two-layer citation validator with up to 2 retries.",
+          "Built a Locust benchmark script replaying real production conversations message-by-message against the new graph route to measure improvement at scale.",
+          "Wrote three LLM-as-judge evaluators in Langfuse — retrieval precision, citation faithfulness, and answer correctness — and produced the six-phase production hardening roadmap the team now executes.",
+        ],
+        tech: ["LangGraph", "LangChain", "MongoDB", "OpenAI", "Langfuse", "Python", "Next.js", "TypeScript"],
+        caseStudy: "/work/ctd-rag-chatbot",
+      },
+    ],
   },
   {
     slug: "chef-jul",

@@ -12,7 +12,7 @@ export function NavLink({
   "aria-label": ariaLabel,
 }: NavLinkProps) {
   const className =
-    "group text-sm text-muted transition-colors hover:text-text focus-ring";
+    "group text-[15px] font-medium text-muted transition-colors hover:text-text focus-ring";
 
   if (external) {
     return (

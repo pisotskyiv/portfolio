@@ -1,27 +1,23 @@
 "use client";
 
-import { MessageSquare, X } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 
 interface ChatFabProps {
-  isOpen: boolean;
   onClick: () => void;
 }
 
-export function ChatFab({ isOpen, onClick }: ChatFabProps) {
+export function ChatFab({ onClick }: ChatFabProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={isOpen ? "Close chat" : "Open chat"}
-      aria-expanded={isOpen}
+      aria-label="Open chat"
+      aria-expanded={false}
       aria-controls="chat-drawer"
-      className="fixed bottom-6 right-6 z-50 flex h-8 w-14 items-center justify-center rounded border border-accent bg-elevated text-accent glow-pulse focus-ring"
+      className="fixed bottom-6 right-6 z-50 flex h-14 items-center gap-2 rounded-lg border border-accent bg-elevated px-5 text-accent glow-pulse focus-ring"
     >
-      {isOpen ? (
-        <X size={15} aria-hidden="true" />
-      ) : (
-        <MessageSquare size={15} aria-hidden="true" />
-      )}
+      <MessageSquare size={20} aria-hidden="true" />
+      <span className="text-[15px] font-medium">Chat</span>
     </button>
   );
 }

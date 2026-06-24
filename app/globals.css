@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #100D0A;
-  --color-elevated: #241B12;
-  --color-surface: #2A1F17;
+  --color-bg: #0F0C09;
+  --color-surface: #1C150F;
+  --color-elevated: #2A1F17;
+  --color-raised: #3A2C20;
   --color-accent: #C3753A;
   --color-accent-hover: #92400E;
   --color-text: #F5EDE4;
-  --color-muted: #93857C;
-  --color-border: #2A211A;
+  --color-muted: #C2B4A6;
+  --color-border: #3A2E24;
 
   --tracking-label: 0.2em;
   --tracking-badge: 0.15em;
@@ -22,10 +23,13 @@
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
   }
   .eyebrow {
-    @apply font-mono text-xs uppercase tracking-label text-muted;
+    @apply font-mono text-[13px] font-medium uppercase tracking-label text-muted;
+  }
+  .container-page {
+    @apply mx-auto w-full max-w-5xl px-6 sm:px-8 lg:px-12;
   }
   .section {
-    @apply px-12 py-20;
+    @apply py-20 scroll-mt-20;
   }
   .highlight-border {
     box-shadow: 0 0 0 1px var(--color-accent), 0 0 8px color-mix(in srgb, var(--color-accent) 35%, transparent);
@@ -48,6 +52,27 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+  .scrollbar-min {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-accent) 55%, transparent) transparent;
+  }
+  .scrollbar-min::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  .scrollbar-min::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-min::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-accent) 45%, transparent);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .scrollbar-min:hover::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-accent) 65%, transparent);
+    background-clip: padding-box;
+  }
 }
 
 @layer base {
@@ -62,6 +87,7 @@
   html {
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }

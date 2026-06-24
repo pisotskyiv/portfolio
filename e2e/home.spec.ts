@@ -9,7 +9,7 @@ test.describe("Home page", () => {
     await expect(nav.getByRole("link", { name: "Vlad Pisotskyi" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Work" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Contact" })).toBeVisible();
+    await expect(nav.getByRole("button", { name: "Contact" })).toBeVisible();
   });
 
   test("nav has GitHub link", async ({ page }) => {

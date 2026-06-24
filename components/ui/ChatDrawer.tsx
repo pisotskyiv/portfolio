@@ -74,11 +74,11 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="fixed inset-x-3 bottom-3 z-60 flex h-[82vh] flex-col overflow-hidden rounded-2xl border border-border bg-surface sm:inset-auto sm:h-auto sm:bottom-24 sm:right-6 sm:w-85 sm:rounded-xl sm:shadow-2xl"
+            className="fixed inset-x-3 bottom-3 z-60 flex h-[82vh] flex-col overflow-hidden rounded-2xl border border-accent/30 bg-elevated sm:inset-auto sm:h-auto sm:bottom-24 sm:right-6 sm:w-110 sm:rounded-xl sm:shadow-2xl sm:highlight-border"
           >
             <div
               className={clsx(
-                "flex items-center justify-between border-b border-border bg-elevated px-4 transition-all duration-200",
+                "flex items-center justify-between border-b border-border bg-raised px-4 transition-all duration-200",
                 isScrolled ? "py-1.5" : "py-2",
               )}
             >
@@ -110,11 +110,11 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
               aria-live="polite"
               aria-relevant="additions"
               onScroll={handleScroll}
-              className="scrollbar-thin scrollbar-thumb-accent/40 scrollbar-track-transparent flex flex-1 flex-col gap-3 overflow-y-auto p-4 sm:max-h-105"
+              className="scrollbar-min flex flex-1 flex-col gap-3 overflow-y-auto p-4 sm:max-h-[70vh] sm:min-h-130"
             >
               {messages.length === 0 && (
                 <div className="flex flex-col gap-3">
-                  <div className="rounded-lg border border-border bg-bg px-3 py-2 text-sm leading-relaxed text-text">
+                  <div className="rounded-lg border border-border bg-bg px-3 py-2 text-base leading-relaxed text-text">
                     Hi! I&apos;m Vlad&apos;s AI assistant. Ask me about his
                     experience, projects, and skills — or try one of these:
                   </div>
@@ -128,7 +128,7 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                         type="button"
                         onClick={() => sendMessage({ text: prompt })}
                         disabled={isLoading}
-                        className="rounded-full border border-border bg-elevated px-3 py-1 text-xs text-muted hover:border-accent/50 hover:text-text focus-ring transition-colors disabled:opacity-50"
+                        className="rounded-full border border-accent/30 bg-raised px-3 py-1 text-[13px] text-muted hover:border-accent/60 hover:text-text focus-ring transition-colors disabled:opacity-50"
                       >
                         {prompt}
                       </button>
@@ -163,7 +163,7 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                         <div
                           key={i}
                           className={clsx(
-                            "rounded-lg px-3 py-2 text-sm leading-relaxed",
+                            "rounded-lg px-3 py-2 text-base leading-relaxed",
                             message.role === "user"
                               ? "max-w-[65%] bg-accent/10 text-text"
                               : "border border-border bg-bg text-text",
@@ -290,7 +290,7 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                 <p
                   id="chat-char-count"
                   className={clsx(
-                    "mt-1 text-right text-[10px] tabular-nums",
+                    "mt-1 text-right text-xs tabular-nums",
                     MAX_INPUT_CHARS - input.length <= 200 ? "text-accent" : "text-muted",
                   )}
                 >

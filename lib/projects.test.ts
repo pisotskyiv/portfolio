@@ -41,4 +41,19 @@ describe("projects data integrity", () => {
   it.each(projects)("$slug has at least one link (github, live, or caseStudy)", (project) => {
     expect(project.github || project.live || project.caseStudy).toBeTruthy();
   });
+
+  it("LangGraph is not a top-level project", () => {
+    const topLevelSlugs = projects.map((p) => p.slug);
+    expect(topLevelSlugs).not.toContain("langgraph-rag-citation-engine");
+  });
+
+  it("CTD RAG has LangGraph as a child with its case study link", () => {
+    const ctdRag = projects.find((p) => p.slug === "ctd-rag-chatbot")!;
+    expect(ctdRag.children).toBeDefined();
+    const langGraph = ctdRag.children!.find(
+      (c) => c.slug === "langgraph-rag-citation-engine",
+    );
+    expect(langGraph).toBeDefined();
+    expect(langGraph!.caseStudy).toBe("/work/ctd-rag-chatbot");
+  });
 });

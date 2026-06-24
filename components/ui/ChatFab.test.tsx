@@ -4,36 +4,36 @@ import { describe, expect, it, vi } from "vitest";
 import { ChatFab } from "./ChatFab";
 
 describe("ChatFab", () => {
-  it("renders with aria-label 'Open chat' when closed", () => {
-    render(<ChatFab isOpen={false} onClick={vi.fn()} />);
+  it("renders with aria-label 'Open chat'", () => {
+    render(<ChatFab onClick={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Open chat" })).toBeInTheDocument();
   });
 
-  it("renders with aria-label 'Close chat' when open", () => {
-    render(<ChatFab isOpen={true} onClick={vi.fn()} />);
-    expect(screen.getByRole("button", { name: "Close chat" })).toBeInTheDocument();
-  });
-
-  it("sets aria-expanded false when closed", () => {
-    render(<ChatFab isOpen={false} onClick={vi.fn()} />);
+  it("sets aria-expanded false", () => {
+    render(<ChatFab onClick={vi.fn()} />);
     expect(screen.getByRole("button", { name: "Open chat" })).toHaveAttribute(
       "aria-expanded",
       "false",
     );
   });
 
-  it("sets aria-expanded true when open", () => {
-    render(<ChatFab isOpen={true} onClick={vi.fn()} />);
-    expect(screen.getByRole("button", { name: "Close chat" })).toHaveAttribute(
-      "aria-expanded",
-      "true",
+  it("sets aria-controls to chat-drawer", () => {
+    render(<ChatFab onClick={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Open chat" })).toHaveAttribute(
+      "aria-controls",
+      "chat-drawer",
     );
+  });
+
+  it("shows Chat label text", () => {
+    render(<ChatFab onClick={vi.fn()} />);
+    expect(screen.getByText("Chat")).toBeInTheDocument();
   });
 
   it("calls onClick when clicked", async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render(<ChatFab isOpen={false} onClick={onClick} />);
+    render(<ChatFab onClick={onClick} />);
     await user.click(screen.getByRole("button", { name: "Open chat" }));
     expect(onClick).toHaveBeenCalledOnce();
   });

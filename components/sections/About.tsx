@@ -7,7 +7,7 @@ export function About() {
       aria-labelledby="about-heading"
       className="section"
     >
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+      <div className="container-page flex flex-col gap-8">
         <p
           id="about-heading"
           role="heading"

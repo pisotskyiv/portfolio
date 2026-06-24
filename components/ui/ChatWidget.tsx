@@ -21,9 +21,15 @@ export function ChatWidget() {
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    const handler = () => setIsOpen(true);
+    window.addEventListener("chat:open", handler);
+    return () => window.removeEventListener("chat:open", handler);
+  }, []);
+
   return (
     <>
-      <ChatFab isOpen={isOpen} onClick={() => setIsOpen((prev) => !prev)} />
+      {!isOpen && <ChatFab onClick={() => setIsOpen(true)} />}
       <ChatDrawer isOpen={isOpen} onClose={() => setIsOpen(false)} />
       <BookingNotifier />
     </>

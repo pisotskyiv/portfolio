@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { Projects } from "./Projects";
 
@@ -97,5 +97,30 @@ describe("Projects", () => {
     expect(
       screen.queryByRole("link", { name: /view ctd rag chatbot on github/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("renders LangGraph as a sub-entry within the CTD RAG card", () => {
+    render(<Projects />);
+    const ctdCard = screen.getByText("CTD RAG Chatbot").closest("li")!;
+    expect(
+      within(ctdCard).getByText("LangGraph RAG Citation Engine"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders 3 top-level project cards", () => {
+    render(<Projects />);
+    const outerList = screen.getByText("CTD RAG Chatbot").closest("li")
+      ?.parentElement;
+    expect(outerList?.children.length).toBe(3);
+  });
+
+  it("renders LangGraph case study link within CTD RAG card", () => {
+    render(<Projects />);
+    const ctdCard = screen.getByText("CTD RAG Chatbot").closest("li")!;
+    expect(
+      within(ctdCard).getByRole("link", {
+        name: /read langgraph rag citation engine case study/i,
+      }),
+    ).toHaveAttribute("href", "/work/ctd-rag-chatbot");
   });
 });
