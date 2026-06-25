@@ -16,7 +16,10 @@ const spaceMono = Space_Mono({
   display: "swap",
 });
 
+const BASE_URL = "https://www.pisotskyiv.dev";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
   title: `${siteConfig.name} — ${siteConfig.title}`,
   description: siteConfig.pitch,
   authors: [{ name: siteConfig.name }],
@@ -24,6 +27,14 @@ export const metadata: Metadata = {
     title: `${siteConfig.name} — ${siteConfig.title}`,
     description: siteConfig.pitch,
     type: "website",
+    url: BASE_URL,
+    siteName: siteConfig.name,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${siteConfig.name} — ${siteConfig.title}`,
+    description: siteConfig.pitch,
   },
 };
 
