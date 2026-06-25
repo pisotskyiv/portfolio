@@ -24,7 +24,7 @@ describe("Hero", () => {
 
   it("shows short pitch", () => {
     render(<Hero />);
-    expect(screen.getByText(/RAG pipelines/i)).toBeInTheDocument();
+    expect(screen.getByText(/RAG chat systems/i)).toBeInTheDocument();
   });
 
   it("View Work links to work section", () => {
