@@ -5,80 +5,82 @@ description: Scaffold and write a case study page at app/work/[slug]. Use when b
 
 # case-study
 
-Case studies are what separate this portfolio from a card grid. Each is ~600 words in five sections, engineering-voice, honest, sanitized for employer work. The audience is a senior engineer or technical recruiter who will probe the decisions in an interview. This skill creates the page, then makes its `caseStudy` link live.
+Case studies are what separate this portfolio from a card grid. Each is engineering-voice, honest, and sanitized for employer work. The audience is a senior engineer or technical recruiter who will probe the decisions in an interview.
 
-The `app/work/[slug]` route renders a project's case study. A `caseStudy` value in `lib/projects.ts` must point at a page that exists — shipping the page is what makes the link real, so add the page in the same change that sets (or relies on) the link.
+A case study is **data, not a page file.** The single dynamic route `app/(main)/work/[slug]/page.tsx` renders every case study from an entry in `lib/case-studies.ts`. Adding a case study means adding that data entry — you do **not** create a per-slug page file. The page, its metadata, its canonical URL, and its per-project OpenGraph image are all produced centrally from that data plus the matching project in `lib/projects.ts`.
 
 ## When to use / when not
 
-- use: building the first `app/work/[slug]/page.tsx`, or adding a case study for another project.
-- skip: editing the project card itself (that is `add-project`); writing prose that is not a `/work/[slug]` page.
+- use: adding (or rewriting) a case study — an entry in `lib/case-studies.ts`.
+- skip: editing the project card itself (that is `add-project`); changing how the page renders (that is the route component, not this skill).
+
+## How a case study renders (read before editing)
+
+- `lib/case-studies.ts` — `Record<slug, CaseStudy>` where `CaseStudy = { slug, tldr, sections: { id, heading, body: string[] }[] }`. `tldr` feeds the TL;DR block; each `section.id` is a kebab anchor used by the table of contents, `heading` is the section title, `body` is an array of paragraphs.
+- `lib/projects.ts` — the project entry supplies `title`, `role`, and `description`. The page renders `project.title` as the `<h1>` and `project.role` as the eyebrow; `description` becomes the meta description **and** the OG card subtitle.
+- `app/(main)/work/[slug]/page.tsx` — `generateStaticParams` iterates `Object.keys(caseStudies)`, so a new entry is prerendered automatically. `generateMetadata` emits the title (templated to `… — Vlad Pisotskyi`), description, `alternates.canonical`, and per-page OpenGraph/Twitter.
+- `app/(main)/work/[slug]/opengraph-image.tsx` — generates a per-project social card (project title + description on the brand background) via `next/og`. No image assets.
+
+**Metadata is automatic.** Do not hand-write `metadata`, canonical, or OG tags for a case study — the only SEO input you provide is the project's `description` (a defensible one-sentence summary) in `lib/projects.ts`.
 
 ## Steps
 
 1. **Gather raw material — do not write from memory.** Source from: the project's entry in `lib/projects.ts` (canonical bullets + metrics), `notes/chatbot-devlog.md` (decisions, dead-ends), `notes/opus-review-brief.md` (architecture + review notes), and the master resume PDF. Every metric in the page must trace to one of these.
-2. **Sanitize employer work** (CTD RAG and any client project): no client names, program names, or proprietary infrastructure. No internal screenshots — diagrams only, redrawn generically. When in doubt, describe the pattern and your decision, not the specific system. Every metric carries a defensible basis ("measured by X in Y").
-3. **Create the page file** at `app/work/<slug>/page.tsx`. For slug `ctd-rag-chatbot` that is `app/work/ctd-rag-chatbot/page.tsx`. Server component (no `"use client"`), exports `metadata` and a default page. Wrap content in a `<main>` so the page has one landmark (matches `app/page.tsx`). Use existing tokens only — `bg-surface`, `text-muted`, `border-border` resolve from the `@theme` block in `app/globals.css`; do not invent classes.
+2. **Sanitize employer work** (CTD RAG and any client project): no client names, program names, or proprietary infrastructure. No internal screenshots. When in doubt, describe the pattern and your decision, not the specific system. Every metric carries a defensible basis ("measured by X in Y").
+3. **Confirm the project entry exists in `lib/projects.ts`** with `slug`, `title`, `role`, and a `description` (the description feeds both the meta description and the OG card — make it a defensible one-sentence summary). The page 404s unless both the project (matched by `slug`) and the case-study entry exist.
+4. **Add the entry to `lib/case-studies.ts`** keyed by the slug, matching the `CaseStudy` type:
 
-   ```tsx
-   import type { Metadata } from "next";
-
-   export const metadata: Metadata = {
-     title: "[Project Title] — Vlad Pisotskyi",
-     description: "[One sentence summary for OG/SEO]",
-   };
-
-   export default function CaseStudyPage() {
-     return (
-       <main id="main-content" className="mx-auto max-w-2xl px-4 py-16">
-         {/* five sections below */}
-       </main>
-     );
-   }
+   ```ts
+   "your-slug": {
+     slug: "your-slug",
+     tldr: "2–4 sentence outcome-first summary. Lead with the result and its basis.",
+     sections: [
+       { id: "problem-context", heading: "Problem & Context", body: ["…", "…"] },
+       { id: "my-role",         heading: "My Role",           body: ["…"] },
+       { id: "architecture",    heading: "Architecture",      body: ["…", "…"] },
+       { id: "key-decisions",   heading: "Key Decisions",     body: ["…"] },
+       { id: "results",         heading: "Results",           body: ["…"] },
+       { id: "what-id-change",  heading: "What I'd Do Differently", body: ["…"] },
+     ],
+   },
    ```
 
-4. **Write the five sections** — keep this structure exactly, ~600 words total, engineering voice, no code (code lives in GitHub):
-   - **Problem (50–80 words)** — what was broken, missing, or slow before this work. Concrete and specific, not "we needed better performance".
-   - **What I built (100–150 words)** — high-level architecture: the main components and how they fit. One paragraph or a short list.
-   - **Key decisions (200–250 words)** — 2–3 decisions worth defending. For each: the decision, the alternatives considered, why this choice, what you gave up. These are the interview questions, answered before they are asked.
-   - **Results (50–80 words)** — quantified outcomes, each with a stated basis ("measured in Langfuse" / "benchmarked against N requests").
-   - **What I'd do differently (80–100 words)** — one or two real retrospective tradeoffs. This is the section that reads as senior.
-5. **Add the architecture diagram slot** below "What I built". A placeholder is fine in dev; a missing diagram on launch is not — replace before publishing.
-
-   ```tsx
-   {/* Architecture diagram — replace with SVG/image before publishing */}
-   <div className="my-8 rounded-lg border border-border bg-surface p-8 text-center text-sm text-muted">
-     Architecture diagram
-   </div>
-   ```
-
-6. **Confirm the page renders** before touching `lib/projects.ts`. Run `npm run gate` so the route type-checks and builds, then `npm run ship` to run the gate plus Playwright + axe (`/work/<slug>` returns 200, no 404, no broken links, axe passes). The `caseStudy` link is only real once this is green.
-7. **Make the link live (IRREVERSIBLE checkpoint below).** If the slug's `caseStudy` value is already in `lib/projects.ts`, the page rendering is what un-breaks it — note it in the receipt. If you are adding a new slug, add `caseStudy: "/work/<slug>"` to that project entry only after step 6 is green. `lib/projects.test.ts` enforces the data shape.
+5. **Write the sections** — engineering voice, no code (code lives in GitHub). The proven arc (adapt headings as the story needs; section ids must be unique kebab anchors):
+   - **Problem & Context** — what was broken, missing, or slow. Concrete, not "we needed better performance".
+   - **My Role** — scope and ownership, one short paragraph.
+   - **Architecture** — the main components and how they fit. Prose (there is no diagram/image pipeline yet — describe it in words).
+   - **Key Decisions** — 2–3 decisions worth defending: the decision, the alternatives, why this choice, what you gave up. The interview questions, answered before they are asked.
+   - **Results** — quantified outcomes, each with a stated basis ("measured in Langfuse" / "benchmarked against N requests").
+   - **What I'd Do Differently** — one or two real retrospective tradeoffs. The section that reads as senior.
+6. **Confirm it renders and the SEO is correct.** Run `npm run gate` (the route type-checks and builds; `generateStaticParams` prerenders the new slug), then `npm run ship` for Playwright + axe (`/work/<slug>` returns 200, no 404, axe passes). Spot-check the generated metadata if you changed the project `description`: the built HTML for `/work/<slug>` should show a per-page `og:title`, an `og:image` under `/work/<slug>/opengraph-image…`, and a `<link rel="canonical">` for the slug.
+7. **Make the link live (IRREVERSIBLE checkpoint below).** If the project's `caseStudy` value is already `/work/<slug>`, the data entry rendering is what un-breaks it — note that in the receipt. If you are adding it, set `caseStudy: "/work/<slug>"` on that project entry only after step 6 is green. `lib/projects.test.ts` enforces the data shape.
 
 ## Content rules
 
 - Rule: every number in the case study also appears in `lib/projects.ts` bullets — single source of truth.
   Check: `npm test` (`lib/projects.test.ts` validates the projects data shape). guidance: cross-checking each prose number against the bullet is manual — reviewer's job at the IRREVERSIBLE checkpoint; tracked in `CLAUDE.local.md`.
-- Rule: never freeze a test count or metric into the page. Source any "N tests passing" figure from current `npm test` output and stamp it with the date you ran it. Notes hold a stale "88/88" — do not copy it.
+- Rule: never freeze a test count or metric into the prose. Source any "N tests passing" figure from current `npm test` output and stamp it with the date you ran it.
   Check: `npm test` prints the live count; the page cites that run, not a remembered number.
 - Rule: no emoji anywhere (CLAUDE.md style rule).
   Check: `npm run gate` (lint) plus reviewer eyes.
+- Rule: do not hand-write per-case-study metadata/OG/canonical — it is generated centrally; provide only the project `description`.
+  Check: `npm run gate` builds the dynamic route; the built `/work/<slug>` HTML carries the per-page `og:title`/`og:image`/canonical (step 6 spot-check).
 - guidance: no "In conclusion" / "Overall" — just end. No technology bullet list in the body (that is the card's job). Passive voice is fine for decisions ("was chosen"). Check tracked in `CLAUDE.local.md`.
 
 ## Checkpoints
 
-> CHECKPOINT — SCOPE. Before creating the page, confirm: the slug, which project entry in `lib/projects.ts` it maps to, and that raw material (devlog, projects.ts, opus brief, resume) is gathered. This touches a new route plus, later, the data file.
+> CHECKPOINT — SCOPE. Before writing, confirm: the slug, the matching project entry in `lib/projects.ts` (with `title`, `role`, `description`), and that raw material (devlog, projects.ts, opus brief, resume) is gathered. This edits `lib/case-studies.ts` and, later, the `caseStudy` link in `lib/projects.ts`.
 
-> CHECKPOINT — CAN'T-VERIFY. The agent cannot judge whether prose is sanitized, honest, and interview-defensible, nor confirm the diagram reads correctly. Author reviews the five sections and supplies/approves the diagram before publish.
+> CHECKPOINT — CAN'T-VERIFY. The agent cannot judge whether prose is sanitized, honest, and interview-defensible. Author reviews the sections before publish.
 
-> CHECKPOINT — IRREVERSIBLE. Before the `caseStudy` link goes live (adding it to `lib/projects.ts`, or relying on this page to un-break an existing link), confirm: step 6 is green and the page renders at `/work/<slug>`. Do not make the link real against a 404.
+> CHECKPOINT — IRREVERSIBLE. Before the `caseStudy` link goes live (adding it to `lib/projects.ts`, or relying on this entry to un-break an existing link), confirm: step 6 is green and the page renders at `/work/<slug>`. Do not make the link real against a 404.
 
 ## Receipt
 
 ```
 --- RECEIPT ---
-did:       app/work/<slug>/page.tsx; lib/projects.ts caseStudy (added | already present, now backed by a page)
+did:       lib/case-studies.ts entry <slug>; lib/projects.ts caseStudy (added | already present, now backed by data)
 gate:      green | FAILED: <which step>   (npm run gate, then npm run ship)
-checked:   /work/<slug> renders 200, no 404; axe passes; every page number traces to lib/projects.ts; test count sourced from npm test on <date>
-needs-you: review sanitization + honesty of the five sections; supply the architecture diagram; approve making the caseStudy link live
+checked:   /work/<slug> renders 200, no 404; axe passes; per-page og:title/og:image/canonical present; every page number traces to lib/projects.ts; test count sourced from npm test on <date>
+needs-you: review sanitization + honesty of the sections; approve making the caseStudy link live
 ```
