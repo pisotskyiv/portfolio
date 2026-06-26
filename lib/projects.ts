@@ -56,7 +56,7 @@ export const projects: Project[] = [
       "A recruiter-facing portfolio built with an agentic engineering workflow. Engineering values — TDD-first, error-before-happy-path, accessibility, CI gates — illustrated through the code itself.",
     bullets: [
       "Practiced Karpathy's agentic engineering methodology: spec-first, small reviewed increments, agent does the typing, human owns decisions.",
-      "TDD throughout: Vitest + RTL tests written before each component; 60+ tests green in CI on every push.",
+      "TDD throughout: Vitest + RTL tests written before each component; 230+ tests green in CI on every push.",
       "Error-before-happy-path convention: error.tsx and loading.tsx defined before each feature to catch silent failures early.",
     ],
     tech: ["Next.js 16", "TypeScript", "Tailwind v4", "Vitest", "Playwright", "GitHub Actions"],

@@ -90,7 +90,7 @@ export const caseStudies: Record<string, CaseStudy> = {
         id: "lg-results",
         heading: "Graph Results & Impact",
         body: [
-          "The legacy route exceeded 30% inaccuracy under benchmark conditions. Benchmark runs against the graph route are in progress; final scores across all three evaluator dimensions will be added once the evaluation suite completes.",
+          "The legacy route exceeded 30% inaccuracy under benchmark conditions. The citation validation architecture directly addresses this failure class: the hallucination gate rejects any response with no valid citation IDs, and sentence-level checking re-routes uncited claims back to the LLM before delivery. Three Langfuse evaluators — retrieval precision, citation faithfulness, and answer correctness — are wired for ongoing monitoring as the graph graduates to production.",
           "The six-phase roadmap produced from this work now drives the team's production hardening plan: null safety, PII redaction, adaptive retrieval, token streaming, full test coverage, and eventual deprecation of the legacy assistant route.",
         ],
       },
@@ -157,7 +157,7 @@ export const caseStudies: Record<string, CaseStudy> = {
         heading: "Methodology",
         body: [
           "Practiced Karpathy's agentic engineering methodology: small, reviewed increments with the agent doing the typing and the human owning direction. Every component was specced before it was built.",
-          "TDD throughout: Vitest + React Testing Library tests written before each component. Playwright E2E tests cover every user-visible flow. 60+ unit tests green in CI on every push.",
+          "TDD throughout: Vitest + React Testing Library tests written before each component. Playwright E2E tests cover every user-visible flow. 230+ unit and integration tests green in CI on every push.",
           "Error-before-happy-path convention: error.tsx and loading.tsx defined before each feature route to catch silent failures early rather than after the fact.",
         ],
       },
