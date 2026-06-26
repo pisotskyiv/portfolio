@@ -28,6 +28,7 @@ Personal portfolio site. The build is part of the showcase: test-driven, CI-gate
 
 - No emoji anywhere — not in portfolio content, PR descriptions, READMEs, commit messages, or comments.
 - Structure with lines, indentation, color, and font size — never emoji as visual markers.
+- **No PII in source code.** Never hardcode email addresses or personal identifiers in committed files. Contact fallbacks use `siteConfig.links.linkedin`; calendar IDs and credentials stay in env vars (`.env.local`, Vercel secrets).
 
 ## Style guide
 

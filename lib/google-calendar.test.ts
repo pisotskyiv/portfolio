@@ -32,8 +32,10 @@ import {
 const VALID = {
   name: "Jane Recruiter",
   email: "jane@example.com",
-  date: "2030-01-15", // winter -> PST -> 09:00 PT == 17:00Z
-  time: "09:00",
+  // Tue, within the 4-week window of BEFORE; winter -> PST -> 12:00 PT == 20:00Z.
+  // Must be a real offered slot (Mon-Fri, 12/13/14 PT) or bookSlot rejects it.
+  date: "2030-01-15",
+  time: "12:00",
 };
 const BEFORE = new Date("2030-01-01T00:00:00Z");
 const AFTER = new Date("2030-02-01T00:00:00Z");
@@ -80,15 +82,15 @@ describe("bookSlot", () => {
     expect(eventsInsert).toHaveBeenCalledOnce();
     const arg = eventsInsert.mock.calls[0][0];
     expect(arg.calendarId).toBe("primary-cal");
-    expect(arg.requestBody.start.dateTime).toBe("2030-01-15T17:00:00.000Z");
-    expect(arg.requestBody.end.dateTime).toBe("2030-01-15T18:00:00.000Z");
+    expect(arg.requestBody.start.dateTime).toBe("2030-01-15T20:00:00.000Z");
+    expect(arg.requestBody.end.dateTime).toBe("2030-01-15T21:00:00.000Z");
     // No `attendees`: a service account on a personal calendar can't invite
     // without DWD, and including them fails the insert. The booker is captured
     // in the description instead.
     expect(arg.requestBody.attendees).toBeUndefined();
     expect(arg.requestBody.description).toContain("jane@example.com");
 
-    expect(result.start).toBe("2030-01-15T17:00:00.000Z");
+    expect(result.start).toBe("2030-01-15T20:00:00.000Z");
     expect(result.addToCalendarLink).toContain("action=TEMPLATE");
   });
 
@@ -134,12 +136,26 @@ describe("bookSlot", () => {
     expect(eventsInsert).not.toHaveBeenCalled();
   });
 
+  it("rejects an out-of-window or off-grid slot ('unavailable') without touching the calendar", async () => {
+    // Beyond the 4-week window (the availability UI never offers this far out),
+    // and an off-grid time on a real day — both must be refused on the write
+    // path, not just hidden on the read path.
+    const outOfWindow = bookSlot({ ...VALID, date: "2030-06-17", now: BEFORE });
+    await expect(outOfWindow).rejects.toMatchObject({ code: "unavailable" });
+
+    const offGrid = bookSlot({ ...VALID, time: "09:00", now: BEFORE });
+    await expect(offGrid).rejects.toMatchObject({ code: "unavailable" });
+
+    expect(freebusyQuery).not.toHaveBeenCalled();
+    expect(eventsInsert).not.toHaveBeenCalled();
+  });
+
   it("rejects a slot that freebusy reports as taken (409 class) without inserting", async () => {
     freebusyQuery.mockResolvedValue({
       data: {
         calendars: {
           "primary-cal": {
-            busy: [{ start: "2030-01-15T17:30:00Z", end: "2030-01-15T18:30:00Z" }],
+            busy: [{ start: "2030-01-15T20:30:00Z", end: "2030-01-15T21:30:00Z" }],
           },
         },
       },

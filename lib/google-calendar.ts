@@ -3,7 +3,7 @@ import { google } from "googleapis";
 import type { DaySchedule } from "./availability";
 import { DAY_META, WEEKLY_SLOTS } from "./availability";
 import { buildWeek, getBusinessDays, isBlocked } from "./slot-time";
-import { slotWindow, googleCalendarLink } from "./booking";
+import { slotWindow, googleCalendarLink, isOfferedSlot } from "./booking";
 
 /**
  * Resolve the service-account private key from env, tolerant of how the value
@@ -114,7 +114,7 @@ export async function getAvailability(
 /** A booking rejected for a recoverable reason the client can act on. */
 export class BookingError extends Error {
   constructor(
-    public readonly code: "past" | "taken",
+    public readonly code: "past" | "taken" | "unavailable",
     message: string,
   ) {
     super(message);
@@ -155,6 +155,12 @@ export async function bookSlot(input: BookSlotInput): Promise<BookingResult> {
   const { start, end } = slotWindow(input.date, input.time);
   if (start <= now) {
     throw new BookingError("past", "That time is in the past.");
+  }
+  // The 4-week window and the Mon-Fri afternoon grid are display limits on the
+  // availability read; re-enforce them here so a hand-crafted POST can't book an
+  // off-grid or out-of-window slot the UI never offered.
+  if (!isOfferedSlot(input.date, input.time, now)) {
+    throw new BookingError("unavailable", "That time isn't an available slot.");
   }
 
   // events.insert needs calendar.events; the freebusy precheck below is NOT

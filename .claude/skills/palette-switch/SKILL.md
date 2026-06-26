@@ -1,43 +1,49 @@
 ---
 name: palette-switch
-description: Switch the active color palette by editing the @theme tokens in app/globals.css. Use when asked to change the palette or try a different color scheme.
+description: Switch the site's color palette by editing the runtime theme variables in app/globals.css. The site has two live palettes (light default + dark) toggled at runtime. Use when asked to change a palette's colors or try a different scheme.
 ---
 
 # palette-switch
 
-Switches the site's color palette by rewriting the eight `--color-*` tokens in the `@theme` block of `app/globals.css` — the single source of truth for every color on the site.
+The site runs **two live palettes** — light (default) and dark — toggled at runtime by `components/ui/ThemeToggle.tsx`. Both are defined in `app/globals.css`. To change a palette you edit the runtime CSS variables in the `:root` (light) and/or `.dark` (dark) blocks — NOT the `@theme inline` block.
 
 ## When to use / when not
 
-- use: changing the active palette, or trying a different color scheme.
-- skip: adding a brand-new color slot (that is a token-set change — edit `@theme` plus `notes/styleguide/tailwind.md`, not this skill), or tuning one component's color (use the existing semantic token classes instead).
+- use: changing the colors of the light palette, the dark palette, or both; trying a different scheme.
+- skip: adding a brand-new color slot (a token-set change — add the `--color-*` mapping in `@theme inline`, the `--*` value in BOTH `:root` and `.dark`, and document it in `notes/styleguide/tailwind.md`), or tuning one component's color (use the existing semantic token classes). Do NOT use this skill to touch the toggle mechanism (`lib/theme.ts`, `ThemeToggle.tsx`) — that is a feature change, not a palette swap.
 
-## Source of truth
+## Source of truth (read before editing)
 
-- The live palette is the eight `--color-*` tokens inside the `@theme` block at `app/globals.css:3` (tokens at `app/globals.css:4-11`). There is NO `:root` and no `tailwind.config`; `@theme` is the only place colors are defined. See `notes/styleguide/tailwind.md` lines 7-8.
-- The eight tokens, in order: `--color-bg`, `--color-elevated`, `--color-surface`, `--color-accent`, `--color-accent-hover`, `--color-text`, `--color-muted`, `--color-border`.
-- `lib/palettes.ts` is a **reference palette library only** — named swatch sets (`iron`, `depth`, `obsidian`, `copper`, `voltage`) you can copy values from. Its `activePalette` export has ZERO importers; editing it does NOT switch the theme and never has. Do not claim otherwise. Note also that `lib/palettes.ts` has no `elevated` field, so it cannot fully express the `@theme` block — `@theme` remains the authority.
+`app/globals.css` is the only place colors are defined. It has three relevant blocks:
+
+1. **`@theme inline { … }`** — maps nine Tailwind tokens to runtime vars: `--color-bg: var(--bg)`, `--color-surface: var(--surface)`, `--color-elevated: var(--elevated)`, `--color-raised: var(--raised)`, `--color-accent: var(--accent)`, `--color-accent-hover: var(--accent-hover)`, `--color-text: var(--text)`, `--color-muted: var(--muted)`, `--color-border: var(--border)`. This is just the wiring — **do not put hex here.** It rarely changes (only when adding/removing a slot).
+2. **`:root { … }`** — the **light** palette (default, no class on `<html>`). The nine `--*` hex values live here.
+3. **`.dark { … }`** — the **dark** palette (`<html class="dark">`, set by the no-flash script + toggle).
+
+So the nine tokens, in order, are: `--bg`, `--surface`, `--elevated`, `--raised`, `--accent`, `--accent-hover`, `--text`, `--muted`, `--border`. To recolor a palette, edit those nine `--*` lines in the matching block. `@custom-variant dark (&:where(.dark, .dark *))` at the top of the file is what makes `dark:` utilities resolve against the `.dark` block — leave it.
+
+- `lib/palettes.ts` is a **non-binding reference swatch library only** — named dark sets (`iron`, `depth`, `obsidian`, `copper`, `voltage`). Its `activePalette` export has ZERO importers; editing it switches nothing and never has. It also predates the light palette and the `surface`/`raised`/`elevated` split, so it cannot express the current token set. `app/globals.css` is the authority.
 
 ## Steps
 
-1. Pick the target palette. If it is one of the named sets, open `lib/palettes.ts` and read its values; otherwise gather the eight hex values you intend to apply.
-2. Edit the `@theme` block in `app/globals.css` (`app/globals.css:4-11`). Set all eight `--color-*` tokens. `lib/palettes.ts` has no `elevated` value, so choose `--color-elevated` deliberately — typically a step between `--color-bg` and `--color-surface`.
-3. Do not edit `lib/palettes.ts` to switch the theme — it has no effect. Only touch it if the user explicitly wants to add or correct a reference swatch.
-4. Verify the change. Run `npm run gate` (lint + typecheck + test + build). Check: contrast (`--color-text` on `--color-bg` and on `--color-surface`, WCAG AA) is NOT covered by gate — it is enforced by the axe scan in `npm run test:e2e`, so run that too.
-5. Update the design-system decisions note in `CLAUDE.local.md` to record the new active palette and rationale.
+1. Decide which palette(s) you are changing — light (`:root`), dark (`.dark`), or both — and gather the nine hex values per palette. The two palettes are independent; changing one does not touch the other.
+2. Edit the nine `--*` values in the `:root` block (light) and/or the `.dark` block (dark) of `app/globals.css`. Do NOT edit `@theme inline` (that is the mapping, not the values).
+3. Do not edit `lib/palettes.ts` to switch anything — it has no effect. Touch it only to add/correct a reference swatch the user explicitly asks for.
+4. Verify. Run `npm run gate` (lint + typecheck + test + build). Contrast (`--text`/`--muted`/`--accent` on `--bg`, `--surface`, `--elevated`, WCAG AA) is NOT covered by gate — it is enforced by the axe scan. Run `npm run test:e2e`: the dark palette is scanned by `e2e/theme.spec.ts` (flips to dark, runs axe); the light palette is covered by the home / work / chat specs. Both themes must pass axe.
+5. Update the **Design system decisions** note in `CLAUDE.local.md` with the new values and rationale (which block changed, and why an accent was darkened/lightened if contrast forced it — e.g. the light accent is `#92400E`, darkened from `#B45309` to clear AA on light surfaces).
 
 ## Checkpoints
 
-> CHECKPOINT — SCOPE. Before editing, confirm: which palette (named set from `lib/palettes.ts`, or explicit hex values), and the chosen `--color-elevated` value (no source palette defines it).
+> CHECKPOINT — SCOPE. Before editing, confirm: which palette(s) — `:root`, `.dark`, or both — and the nine hex values for each. Do not touch `@theme inline` (mapping) or the toggle code (`lib/theme.ts`, `ThemeToggle.tsx`).
 
-> CHECKPOINT — CAN'T-VERIFY. The agent cannot judge how the palette looks rendered. After `npm run gate` passes, the user opens the dev server and visually confirms the palette reads correctly across all sections before this is considered done.
+> CHECKPOINT — CAN'T-VERIFY. The agent cannot judge how a palette looks rendered, and must check BOTH themes. After `npm run gate` + `npm run test:e2e` pass, the user opens the dev server, toggles light AND dark, and visually confirms each reads correctly across all sections before this is done.
 
 ## Receipt
 
 ```
 --- RECEIPT ---
-did:       app/globals.css (@theme --color-* tokens); CLAUDE.local.md (active-palette note)
+did:       app/globals.css (:root and/or .dark --* values); CLAUDE.local.md (palette decision note)
 gate:      green | FAILED: <which step>
-checked:   npm run gate (lint+typecheck+test+build); npm run test:e2e (axe contrast scan)
-needs-you: open the dev server and visually confirm the palette across all sections (agent cannot judge rendered appearance)
+checked:   npm run gate (lint+typecheck+test+build); npm run test:e2e (axe contrast scan, BOTH themes)
+needs-you: open the dev server, toggle light + dark, visually confirm both palettes across all sections (agent cannot judge rendered appearance)
 ```

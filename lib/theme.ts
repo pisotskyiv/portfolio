@@ -14,6 +14,6 @@ export const DARK_CLASS = "dark";
  */
 export const themeInitScript = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
   THEME_STORAGE_KEY,
-)});var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;if(d)document.documentElement.classList.add(${JSON.stringify(
+)});var d=t?t==="dark":true;if(d)document.documentElement.classList.add(${JSON.stringify(
   DARK_CLASS,
 )});}catch(e){}})();`;

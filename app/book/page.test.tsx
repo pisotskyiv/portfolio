@@ -35,7 +35,7 @@ describe("BookPage", () => {
   it("shows the confirm panel with the session identity when signed in", async () => {
     authMock.mockResolvedValue({ user: { name: "Jane R", email: "jane@example.com" } });
     await renderPage({ date: "2026-06-24", time: "12:00" });
-    expect(screen.getByText(/booking .* as/i)).toBeInTheDocument();
+    expect(screen.getByText(/booking .* with/i)).toBeInTheDocument();
     expect(screen.getByText(/Jane R/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^confirm$/i })).toBeInTheDocument();
   });

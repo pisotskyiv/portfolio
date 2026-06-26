@@ -53,7 +53,8 @@ export async function POST(req: Request): Promise<Response> {
   } catch (err) {
     if (err instanceof BookingError) {
       // "taken" is a conflict the client can recover from by picking another
-      // slot; "past" is a bad request.
+      // slot (409); "past" and "unavailable" (off-grid / out-of-window) are bad
+      // requests (400).
       return Response.json(
         { error: err.message, code: err.code },
         { status: err.code === "taken" ? 409 : 400 },

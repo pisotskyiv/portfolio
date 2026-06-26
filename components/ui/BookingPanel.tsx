@@ -7,7 +7,7 @@ import { trackedCalLink } from "@/lib/booking";
 import { publishBookingResult } from "@/lib/booking-broadcast";
 
 /** Seconds the visitor sees the "you must finalize" notice before we redirect. */
-const REDIRECT_SECONDS = 5;
+const REDIRECT_SECONDS = 10;
 
 interface BookingPanelProps {
   date: string;
@@ -36,7 +36,6 @@ export function BookingPanel({
 }: BookingPanelProps) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [link, setLink] = useState<string | null>(null);
-  const [meetUrl, setMeetUrl] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(REDIRECT_SECONDS);
   const [message, setMessage] = useState("");
   const finalizeRef = useRef<HTMLAnchorElement>(null);
@@ -91,7 +90,6 @@ export function BookingPanel({
         const data = (await res.json()) as { addToCalendarLink: string; meetUrl?: string };
         const tracked = trackedCalLink(data.addToCalendarLink);
         setLink(tracked);
-        setMeetUrl(data.meetUrl ?? null);
         setPhase("done");
         publishBookingResult({ status: "success", when: whenLabel, link: tracked });
         return;
@@ -112,10 +110,18 @@ export function BookingPanel({
 
   if (phase === "done" && link) {
     return (
-      <div className="flex flex-col gap-2 text-sm text-text">
-        <p role="status">
-          Booked on our end — but to schedule the meeting you must finalize it
-          yourself. On the next screen, make sure to create the event.
+      <div key="confirmation" className="flex flex-col gap-2 text-sm text-text">
+        <div role="status" className="flex flex-col gap-0">
+          <p className="animate-reveal-ltr">Booked on our end —</p>
+          <p className="animate-reveal-ltr [animation-delay:0.5s] [animation-fill-mode:backwards]">
+            but to schedule the meeting you must finalize it yourself.
+          </p>
+          <p className="animate-reveal-ltr [animation-delay:1s] [animation-fill-mode:backwards]">
+            On the next screen, make sure to create the event.
+          </p>
+        </div>
+        <p className="text-xs text-muted">
+          No personal data is stored beyond what&apos;s needed to schedule this call.
         </p>
         <p aria-hidden="true" className="text-muted">
           Redirecting in {countdown}s…
@@ -123,24 +129,14 @@ export function BookingPanel({
         <a ref={finalizeRef} href={link} className="text-accent hover:underline focus-ring">
           Continue now
         </a>
-        {meetUrl && (
-          <a
-            href={meetUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-accent hover:underline focus-ring"
-          >
-            Join link (Google Meet)
-          </a>
-        )}
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-3 text-sm text-text">
-      <p>
-        Booking {whenLabel} as <span className="font-medium">{name ?? email}</span>.
+      <p className="animate-reveal-ltr">
+        Booking {whenLabel} with <span className="font-medium">{name ?? email}</span>.
       </p>
       {phase === "error" && (
         <div role="alert" className="flex flex-col gap-1 text-muted">

@@ -51,7 +51,7 @@ describe("BookingPanel — signed out", () => {
 describe("BookingPanel — signed in", () => {
   const authed = { ...SLOT, signedIn: true, name: "Jane R", email: "jane@example.com" };
   const TRACKED = `/api/cal-redirect?to=${encodeURIComponent("https://cal/add")}`;
-  const REDIRECT_MS = 5000; // = REDIRECT_SECONDS in BookingPanel
+  const REDIRECT_MS = 10000; // = REDIRECT_SECONDS in BookingPanel
 
   it("books, shows the 'you must finalize' notice and a Continue link, broadcasts success", async () => {
     const user = userEvent.setup();
@@ -112,23 +112,6 @@ describe("BookingPanel — signed in", () => {
     expect(clickSpy).toHaveBeenCalled();
 
     clickSpy.mockRestore();
-  });
-
-  it("shows a Google Meet join link when the booking returns one", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        addToCalendarLink: "https://cal/add",
-        meetUrl: "https://meet.google.com/abc-defg-hij",
-      }),
-    }));
-
-    render(<BookingPanel {...authed} />);
-    await userEvent.setup().click(screen.getByRole("button", { name: /^confirm$/i }));
-
-    expect(
-      await screen.findByRole("link", { name: /join link \(google meet\)/i }),
-    ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
   });
 
   it("shows a 'just taken' message and broadcasts error on a 409", async () => {

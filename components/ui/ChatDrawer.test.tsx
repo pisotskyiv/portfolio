@@ -164,6 +164,21 @@ describe("ChatDrawer", () => {
     await screen.findByText(/schedule a call/i);
   });
 
+  it("shows email fallback when offline availability fetch fails", async () => {
+    mockError = new Error("rate limited");
+    global.fetch = vi.fn().mockRejectedValue(new Error("network error")) as unknown as typeof fetch;
+
+    const user = userEvent.setup();
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /schedule an intro interview/i }));
+
+    expect(fetch).toHaveBeenCalledWith("/api/availability?week=0");
+    const links = await screen.findAllByRole("link", { name: /connect on linkedin/i });
+    expect(links.length).toBeGreaterThanOrEqual(1);
+    expect(links[links.length - 1]).toHaveAttribute("href", expect.stringContaining("linkedin.com"));
+  });
+
   it("renders an error fallback for a failed tool call, not a spinner", () => {
     mockMessages = [
       {

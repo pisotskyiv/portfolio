@@ -103,6 +103,38 @@ The `{Name}Client.tsx` wrapper is itself `"use client"` (required — `ssr: fals
 
 Check: `npm run gate` (build) fails if `ssr: false` `next/dynamic` is used inside a server component. Guidance — there is no lint enforcing the `{Name}Client.tsx` naming or thin-passthrough shape; follow the canonical exemplar above; tracked in CLAUDE.local.md.
 
+## Decision tree 6 — loading.tsx / error.tsx / global-error.tsx
+
+**Every async route segment gets all three.** If a segment does async work (data fetch, auth check), add `loading.tsx`, `error.tsx`, and (for the root layout) `global-error.tsx` before shipping.
+
+### loading.tsx skeleton rules
+
+Match the real content structure exactly — same wrapper classes, same spacing, same gap values. Users notice layout shift more than missing polish.
+
+| Element type | Skeleton approach |
+|---|---|
+| Headings | Real text, `text-muted` color — holds height, shows context |
+| Paragraph / unknown text | `<p className="invisible">Same-length placeholder text</p>` — identical line-height, no shift |
+| Interactive button | Real `<button disabled className="... opacity-50">Real label</button>` — correct height, no pulse bar |
+| True unknown content (list, image, card) | `animate-pulse rounded bg-elevated` div — only when real dimensions are unknown |
+
+Never use a pulse bar where a real disabled element fits. Pulse is for unknown content only.
+
+### Animations on content arrival
+
+Subtle motion bridges the skeleton → content transition. Utilities in `globals.css @theme inline`:
+
+- `animate-fade-in` — `opacity 0→1` + `translateY 4px→0`, 0.2s ease-out. Apply to a whole page `<main>` only when the entire page content is new (e.g. navigating to a fresh route). Do not use on individual elements within an already-rendered page.
+- `animate-reveal-ltr` — `clip-path inset(0 100%→0% 0 0)`, 0.8s ease-out. Left-to-right text reveal. Use on a single key line of personalized/dynamic text (e.g. "Booking Wed, Jul 1 as Vlad."). Do not use on headings or buttons — only on dynamic body copy that appears after data loads.
+
+Both respect `prefers-reduced-motion` automatically via the global `animation-duration: 0.01ms !important` rule in `@layer base`.
+
+### global-error.tsx
+
+- Must include `<html lang="en"><body>...</body></html>` — it replaces the root layout entirely.
+- Cannot be visually tested in dev (Next.js overlay intercepts) or triggered via a throw in `layout.tsx` during production build (SSG pre-rendering fails the export). Trust unit tests. Use a `app/preview-*/page.tsx` temp route to render the component directly if a visual check is needed, then delete it.
+- Logs `error` in `useEffect`; shows heading + retry button only. No Nav, no theme toggle — they may not exist.
+
 ## Before writing code
 
 Walk these in order, default to the cheapest answer:

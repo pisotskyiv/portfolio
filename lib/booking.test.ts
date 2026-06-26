@@ -5,6 +5,8 @@ import {
   googleCalendarLink,
   trackedCalLink,
   formatSlotLabel,
+  isOfferedSlot,
+  MAX_WEEK_OFFSET,
 } from "./booking";
 
 describe("bookInput", () => {
@@ -87,6 +89,49 @@ describe("trackedCalLink", () => {
     // `to` round-trips back to the original link
     const to = new URLSearchParams(tracked.split("?")[1]).get("to");
     expect(to).toBe(raw);
+  });
+});
+
+describe("isOfferedSlot", () => {
+  // 2026-06-24 is a Wednesday; 10:00Z == 03:00 PDT, so the day's afternoon
+  // slots are all still in the future. Window math: offset 0 snaps to Mon
+  // 2026-06-22; offset MAX (4) reaches Mon 2026-07-20 .. Fri 2026-07-24.
+  const now = new Date("2026-06-24T10:00:00Z");
+
+  it("accepts a future Mon-Fri afternoon slot in the current week", () => {
+    expect(isOfferedSlot("2026-06-25", "12:00", now)).toBe(true); // Thu 12pm
+    expect(isOfferedSlot("2026-06-26", "14:00", now)).toBe(true); // Fri 2pm
+  });
+
+  it("accepts a slot at the far edge of the booking window", () => {
+    expect(isOfferedSlot("2026-07-20", "13:00", now)).toBe(true); // offset 4 Mon
+    expect(isOfferedSlot("2026-07-24", "14:00", now)).toBe(true); // offset 4 Fri
+  });
+
+  it("rejects a slot beyond the MAX_WEEK_OFFSET window", () => {
+    // Mon of week 5 ahead — one week past the last offered week.
+    expect(isOfferedSlot("2026-07-27", "12:00", now)).toBe(false);
+    expect(isOfferedSlot("2027-03-15", "12:00", now)).toBe(false);
+  });
+
+  it("rejects an off-grid time on an otherwise valid day", () => {
+    expect(isOfferedSlot("2026-06-25", "09:00", now)).toBe(false); // 9am, not a slot
+    expect(isOfferedSlot("2026-06-25", "03:00", now)).toBe(false); // 3am
+    expect(isOfferedSlot("2026-06-25", "15:00", now)).toBe(false); // 3pm, past the grid
+  });
+
+  it("rejects weekend days", () => {
+    expect(isOfferedSlot("2026-06-27", "12:00", now)).toBe(false); // Sat
+    expect(isOfferedSlot("2026-06-28", "12:00", now)).toBe(false); // Sun
+  });
+
+  it("rejects a past slot even on a grid day/time", () => {
+    expect(isOfferedSlot("2026-06-22", "12:00", now)).toBe(false); // Mon, already gone
+    expect(isOfferedSlot("2026-06-23", "14:00", now)).toBe(false); // Tue, already gone
+  });
+
+  it("exposes the window bound as a constant", () => {
+    expect(MAX_WEEK_OFFSET).toBe(4);
   });
 });
 

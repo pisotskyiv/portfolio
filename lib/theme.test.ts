@@ -6,8 +6,8 @@ describe("themeInitScript", () => {
     expect(themeInitScript).toContain(JSON.stringify(THEME_STORAGE_KEY));
   });
 
-  it("falls back to the OS prefers-color-scheme", () => {
-    expect(themeInitScript).toContain("prefers-color-scheme: dark");
+  it("defaults to dark when no explicit override is set", () => {
+    expect(themeInitScript).toContain(":true");
   });
 
   it("applies the dark class to documentElement", () => {

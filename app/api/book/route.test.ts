@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 class MockBookingError extends Error {
   constructor(
-    public readonly code: "past" | "taken",
+    public readonly code: "past" | "taken" | "unavailable",
     message: string,
   ) {
     super(message);
@@ -79,6 +79,15 @@ describe("POST /api/book", () => {
 
   it("returns 400 when the slot is in the past", async () => {
     bookSlotMock.mockRejectedValue(new MockBookingError("past", "past"));
+    const { POST } = await import("./route");
+    const res = await POST(makeRequest(VALID));
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 when the slot is off-grid or out of window", async () => {
+    bookSlotMock.mockRejectedValue(
+      new MockBookingError("unavailable", "That time isn't an available slot."),
+    );
     const { POST } = await import("./route");
     const res = await POST(makeRequest(VALID));
     expect(res.status).toBe(400);

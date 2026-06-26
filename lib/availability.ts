@@ -12,7 +12,6 @@ export type DaySchedule = {
 };
 
 export const timezone = "PT";
-export const bookingEmail = "vlad.pisotski@gmail.com";
 
 export const DAY_META = [
   { day: "Sunday", short: "Sun" },

@@ -7,7 +7,6 @@ import { ArrowUp, X } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { SchedulerCard } from "./SchedulerCard";
 import type { DaySchedule } from "@/lib/availability";
-import { bookingEmail } from "@/lib/availability";
 import { siteConfig } from "@/lib/site";
 import { MAX_INPUT_CHARS } from "@/lib/chat-limits";
 
@@ -22,6 +21,7 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
   const [showScheduler, setShowScheduler] = useState(false);
   const [offlineAvailability, setOfflineAvailability] = useState<DaySchedule[] | null>(null);
   const [offlineLoading, setOfflineLoading] = useState(false);
+  const [offlineError, setOfflineError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status, error } = useChat();
@@ -48,10 +48,11 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
     setShowScheduler(true);
     if (offlineAvailability) return;
     setOfflineLoading(true);
+    setOfflineError(false);
     fetch("/api/availability?week=0")
       .then((r) => r.json())
       .then((data: { availability: DaySchedule[] }) => setOfflineAvailability(data.availability))
-      .catch(() => {})
+      .catch(() => setOfflineError(true))
       .finally(() => setOfflineLoading(false));
   }
 
@@ -192,12 +193,12 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                           >
                             Couldn&apos;t load the calendar.{" "}
                             <a
-                              href={`mailto:${bookingEmail}?subject=${encodeURIComponent(
-                                "Interview Scheduling",
-                              )}`}
+                              href={siteConfig.links.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="text-accent underline hover:text-accent-hover focus-ring"
                             >
-                              Email to schedule
+                              Connect on LinkedIn
                             </a>
                             .
                           </div>
@@ -254,6 +255,16 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                     <span className="text-xs text-muted animate-pulse">
                       Loading availability...
                     </span>
+                  )}
+                  {showScheduler && offlineError && (
+                    <a
+                      href={siteConfig.links.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-accent underline hover:text-accent-hover focus-ring"
+                    >
+                      Connect on LinkedIn
+                    </a>
                   )}
                   {showScheduler && offlineAvailability && (
                     <SchedulerCard availability={offlineAvailability} />

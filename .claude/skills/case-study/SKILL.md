@@ -1,6 +1,6 @@
 ---
 name: case-study
-description: Scaffold and write a case study page at app/work/[slug]. Use when building the first /work/[slug] page or adding another project's case study.
+description: Write a case study as a data entry in lib/case-studies.ts, rendered by the dynamic app/(main)/work/[slug] route. Use when adding or rewriting a project's case study. Metadata/OG/canonical are automatic.
 ---
 
 # case-study

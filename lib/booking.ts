@@ -3,7 +3,8 @@
 // all unit-testable and shareable between the route, the I/O layer, and the UI.
 
 import { z } from "zod";
-import { slotToUTC, SLOT_MS, TIMEZONE } from "./slot-time";
+import { getBusinessDays, slotToUTC, SLOT_MS, TIMEZONE } from "./slot-time";
+import { WEEKLY_SLOTS } from "./availability";
 
 /**
  * Request body for POST /api/book. Shape only — the slot's date/time. The
@@ -26,6 +27,37 @@ export interface SlotWindow {
 export function slotWindow(date: string, time: string): SlotWindow {
   const start = slotToUTC(date, time);
   return { start, end: new Date(start.getTime() + SLOT_MS) };
+}
+
+/**
+ * How many weeks ahead the scheduler offers. The availability GET clamps its
+ * `week` query to this, and the booking write path validates against it via
+ * `isOfferedSlot` — same bound on read and write so a hand-crafted POST can't
+ * book past the window the UI exposes.
+ */
+export const MAX_WEEK_OFFSET = 4;
+
+/**
+ * True only if `(date, time)` is a real offered slot: a Mon-Fri candidate from
+ * `WEEKLY_SLOTS`, in the future, and inside the [now, MAX_WEEK_OFFSET weeks]
+ * booking window. Derives the candidate days/slots from the SAME source the
+ * availability grid renders from (`getBusinessDays` + `WEEKLY_SLOTS`), so the
+ * write-side guard can't drift from the read-side display. The freebusy
+ * "is it taken" check is separate — this only answers "is it on the grid".
+ */
+export function isOfferedSlot(
+  date: string,
+  time: string,
+  now: Date = new Date(),
+): boolean {
+  for (let offset = 0; offset <= MAX_WEEK_OFFSET; offset++) {
+    const day = getBusinessDays(now, 5, offset).find((d) => d.dateStr === date);
+    if (!day) continue;
+    const onGrid = (WEEKLY_SLOTS[day.dow] ?? []).some((s) => s.time === time);
+    if (!onGrid) return false;
+    return slotWindow(date, time).start > now;
+  }
+  return false;
 }
 
 /** Human-readable slot label in Pacific time, e.g. "Wed, Jun 24, 12 PM PT". */

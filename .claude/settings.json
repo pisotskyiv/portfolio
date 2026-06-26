@@ -1,5 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "allow": [
+      "Edit(/.claude/skills/palette-switch/**)",
+      "Edit(/.claude/skills/ship-check/**)",
+      "Edit(/.claude/skills/case-study/**)",
+      "Bash(git -C /Users/volodymyr.pisotskyi/Desktop/career/portfolio/site status --short)",
+      "Bash(git -C /Users/volodymyr.pisotskyi/Desktop/career/portfolio/site diff --stat app/api/book/route.ts lib/booking.ts lib/google-calendar.ts)"
+    ],
+    "additionalDirectories": [
+      "/Users/volodymyr.pisotskyi/Desktop/career/docs"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
