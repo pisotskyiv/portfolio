@@ -26,6 +26,8 @@ export const metadata: Metadata = {
   title: `${siteConfig.name} — ${siteConfig.title}`,
   description: siteConfig.pitch,
   authors: [{ name: siteConfig.name }],
+  // Public Search Console token (not a secret — rendered into page HTML).
+  verification: { google: "_nKuqgYjQTkCRDiAfPTabFgOIhKquW7IaZ8xh_otsrs" },
   openGraph: {
     title: `${siteConfig.name} — ${siteConfig.title}`,
     description: siteConfig.pitch,
