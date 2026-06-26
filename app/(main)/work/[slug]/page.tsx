@@ -21,9 +21,24 @@ export async function generateMetadata({
   const { slug } = await params;
   const project = projects.find((p) => p.slug === slug);
   if (!project) return {};
+  const canonical = project.caseStudy ?? `/work/${slug}`;
+  const title = `${project.title} — Case Study`;
   return {
-    title: `${project.title} — Case Study`,
+    title,
     description: project.description,
+    alternates: { canonical },
+    // og:image is supplied by the sibling opengraph-image.tsx (per-project).
+    openGraph: {
+      title,
+      description: project.description,
+      type: "article",
+      url: canonical,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: project.description,
+    },
   };
 }
 
