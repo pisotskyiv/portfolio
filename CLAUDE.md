@@ -6,6 +6,7 @@ Personal portfolio site. The build is part of the showcase: test-driven, CI-gate
 
 - **Stack.** Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind v4 (CSS-first `@theme` in `app/globals.css`, no config file), Vitest + Testing Library, Playwright + axe, AI SDK v6 (`ai`@6, `@ai-sdk/*`). Keep version claims here and in skills in sync with `package.json`.
 - **Content is data.** Edit `lib/projects.ts` and `lib/site.ts`; keep component JSX presentational.
+- **Chat provider failover.** The chat route (`app/api/chat/route.ts`) runs a free primary model with silent same-request failover to a paid one; provider order, the circuit breaker, and transient-error classification live in `lib/chat-fallback.ts`. Defaults `AI_PROVIDER=gemini` → `AI_FALLBACK=anthropic`. Select models via the failover wrapper — never inline a model id; keep keys in env. See the `chatbot-api` skill.
 - **Server components by default.** Client islands only where interaction requires them.
 - **TDD.** Write the Vitest unit test first, then implement. Write the Playwright E2E test first for each user flow, then build the UI to pass it.
 - **Gate (run before every push; CI enforces it):** `npm run gate` (= lint + typecheck + test + build). Full pre-ship gate including E2E: `npm run ship`.

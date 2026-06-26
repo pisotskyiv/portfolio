@@ -82,6 +82,19 @@ describe("getBusinessDays", () => {
     expect(days[0].dateStr).toBe("2026-06-22"); // following Monday
   });
 
+  it("rolls to next week's Mon-Fri when today is Friday (weekOffset=0)", () => {
+    // The current week is spent by Friday — only same-day slots would remain,
+    // so default to a clean next-week view instead of a near-empty column.
+    const days = getBusinessDays(new Date("2026-06-26T12:00:00Z")); // a Friday
+    expect(days.map((d) => d.dateStr)).toEqual([
+      "2026-06-29", // Mon
+      "2026-06-30",
+      "2026-07-01",
+      "2026-07-02",
+      "2026-07-03", // Fri
+    ]);
+  });
+
   it("snaps to Mon-Fri of next calendar week when weekOffset=1 (from Thursday)", () => {
     const days = getBusinessDays(new Date("2026-06-18T12:00:00Z"), 5, 1); // Thursday
     expect(days.map((d) => d.dateStr)).toEqual([

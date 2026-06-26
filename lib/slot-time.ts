@@ -25,9 +25,11 @@ export function getBusinessDays(
 
   const dow = cursor.getUTCDay(); // 0=Sun..6=Sat
   const daysSinceMonday = dow === 0 ? 6 : dow - 1;
-  // On weekOffset=0, a weekend means the current week's Mon is already past —
-  // jump to next week instead of showing five empty past columns.
-  const extraWeek = weekOffset === 0 && (dow === 0 || dow === 6) ? 7 : 0;
+  // On weekOffset=0, once it is Friday or the weekend the current week holds at
+  // most same-day slots — jump to next week rather than showing four empty past
+  // columns plus a near-spent Friday.
+  const extraWeek =
+    weekOffset === 0 && (dow === 0 || dow === 6 || dow === 5) ? 7 : 0;
   cursor.setUTCDate(cursor.getUTCDate() - daysSinceMonday + weekOffset * 7 + extraWeek);
 
   const out: Array<{ dateStr: string; dow: number }> = [];

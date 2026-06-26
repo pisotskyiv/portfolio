@@ -1,21 +1,49 @@
 @import "tailwindcss";
 
-@theme {
-  --color-bg: #0F0C09;
-  --color-surface: #1C150F;
-  --color-elevated: #2A1F17;
-  --color-raised: #3A2C20;
-  --color-accent: #C3753A;
-  --color-accent-hover: #92400E;
-  --color-text: #F5EDE4;
-  --color-muted: #C2B4A6;
-  --color-border: #3A2E24;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-raised: var(--raised);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
 
   --tracking-label: 0.2em;
   --tracking-badge: 0.15em;
 
   --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
   --font-mono: var(--font-space-mono), ui-monospace, monospace;
+}
+
+/* Light theme — default (no class on <html>) */
+:root {
+  --bg: #FAF6F1;
+  --surface: #F1E9DF;
+  --elevated: #EAE0D3;
+  --raised: #E0D4C4;
+  --accent: #92400E;
+  --accent-hover: #7C2D12;
+  --text: #2A1F17;
+  --muted: #5C4F45;
+  --border: #D6C9BA;
+}
+
+/* Dark theme — <html class="dark"> */
+.dark {
+  --bg: #0F0C09;
+  --surface: #1C150F;
+  --elevated: #2A1F17;
+  --raised: #3A2C20;
+  --accent: #C3753A;
+  --accent-hover: #92400E;
+  --text: #F5EDE4;
+  --muted: #C2B4A6;
+  --border: #3A2E24;
 }
 
 @layer utilities {
@@ -88,6 +116,7 @@
     font-size: 16px;
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }

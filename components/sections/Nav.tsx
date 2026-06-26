@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { GitHubIcon } from "@/components/ui/GitHubIcon";
 import { siteConfig } from "@/lib/site";
 import { NavLink } from "@/components/ui/NavLink";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { openChat } from "@/lib/chat-events";
 
 export function Nav() {
@@ -38,8 +39,8 @@ export function Nav() {
           VP
         </Link>
         <div className="flex items-center gap-x-4 sm:gap-x-6">
-          <NavLink href="#work">Work</NavLink>
-          <NavLink href="#about">About</NavLink>
+          <NavLink href="/#work">Work</NavLink>
+          <NavLink href="/#about">About</NavLink>
           <button
             type="button"
             onClick={openChat}
@@ -52,6 +53,7 @@ export function Nav() {
           <NavLink href={siteConfig.links.github} external aria-label="GitHub">
             <GitHubIcon size={15} className="text-accent transition-colors group-hover:text-accent-hover" />
           </NavLink>
+          <ThemeToggle />
         </div>
       </nav>
     </header>

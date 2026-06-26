@@ -50,7 +50,9 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
           <article className="flex flex-col gap-12">
             <header className="flex flex-col gap-2">
               <p className="eyebrow">{project.role}</p>
-              <h1 className="text-3xl font-bold text-text">{project.title}</h1>
+              <h1 className="text-3xl font-bold text-text md:text-4xl">
+                {project.title}
+              </h1>
             </header>
 
             <TldrBlock>{caseStudy.tldr}</TldrBlock>
@@ -59,13 +61,16 @@ export default async function CaseStudyPage({ params }: CaseStudyPageProps) {
               <section key={section.id} aria-labelledby={section.id}>
                 <h2
                   id={section.id}
-                  className="mb-5 border-l-2 border-accent pl-3 text-lg font-bold text-text"
+                  className="mb-5 border-l-2 border-accent pl-3 text-lg font-bold text-text md:text-xl"
                 >
                   {section.heading}
                 </h2>
                 <div className="flex flex-col gap-4">
                   {section.body.map((paragraph, i) => (
-                    <p key={i} className="text-sm leading-relaxed text-muted">
+                    <p
+                      key={i}
+                      className="text-sm leading-relaxed text-muted md:text-base lg:text-lg"
+                    >
                       {paragraph}
                     </p>
                   ))}

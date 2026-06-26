@@ -44,3 +44,22 @@ for (const { slug, title } of CASE_STUDIES) {
     });
   });
 }
+
+test.describe("Case study — chat is available off the home route", () => {
+  test("chat widget is mounted and the nav Contact opens it", async ({
+    page,
+  }) => {
+    await page.goto("/work/ctd-rag-chatbot");
+    const fab = page.getByRole("button", { name: "Open chat" });
+    // FAB present proves ChatWidget mounts here (it used to live only under the
+    // (main) route group, so /work had no chat at all).
+    await expect(fab).toBeVisible();
+
+    // Contact dispatches chat:open; the listener attaches post-hydration, so a
+    // too-early click is a no-op. Retry until it opens (FAB unmounts when open).
+    await expect(async () => {
+      await page.getByRole("button", { name: "Contact" }).click();
+      await expect(fab).toBeHidden({ timeout: 1000 });
+    }).toPass({ timeout: 5000 });
+  });
+});

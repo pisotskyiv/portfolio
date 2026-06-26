@@ -30,19 +30,19 @@ describe("Nav", () => {
     ).toBeInTheDocument();
   });
 
-  it("links Work to work section", () => {
+  it("links Work to the home work section (works from any route)", () => {
     render(<Nav />);
     expect(screen.getByRole("link", { name: "Work" })).toHaveAttribute(
       "href",
-      "#work",
+      "/#work",
     );
   });
 
-  it("links About to about section", () => {
+  it("links About to the home about section (works from any route)", () => {
     render(<Nav />);
     expect(screen.getByRole("link", { name: "About" })).toHaveAttribute(
       "href",
-      "#about",
+      "/#about",
     );
   });
 
@@ -57,6 +57,13 @@ describe("Nav", () => {
     const btn = screen.getByRole("button", { name: "Contact" });
     expect(btn).toHaveAttribute("aria-haspopup", "dialog");
     expect(btn).toHaveAttribute("aria-controls", "chat-drawer");
+  });
+
+  it("renders a theme toggle button", () => {
+    render(<Nav />);
+    expect(
+      screen.getByRole("button", { name: /switch to (dark|light) theme/i }),
+    ).toBeInTheDocument();
   });
 
   it("has GitHub link with correct URL", () => {

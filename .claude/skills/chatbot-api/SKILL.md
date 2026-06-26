@@ -1,15 +1,15 @@
 ---
 name: chatbot-api
-description: Governs the streaming AI chat route and its tools — the AI SDK v6 pattern, model selection from env, tool definitions, and the client-side message-parts contract. Use when adding or changing app/api/chat/route.ts, a chat tool, or how ChatDrawer renders tool output.
+description: Governs the streaming AI chat route and its tools — the AI SDK v6 pattern, multi-provider selection + silent failover from env, tool definitions, and the client-side message-parts contract. Use when adding or changing app/api/chat/route.ts, lib/chat-fallback.ts, a chat tool, or how ChatDrawer renders tool output.
 ---
 
 # chatbot-api
 
-The chat backend is a single streaming route (`app/api/chat/route.ts`) plus the client that renders its stream (`components/ui/ChatDrawer.tsx`). This skill is the contract for both: the v6 streaming shape, env-driven model selection, tool definitions, and the message-parts rendering rules. The route is public and recruiter-visible — secrets and persona stay out of it.
+The chat backend is a streaming route (`app/api/chat/route.ts`) + the provider failover policy (`lib/chat-fallback.ts`) + the client that renders the stream (`components/ui/ChatDrawer.tsx`). This skill is the contract for all three: the v6 streaming shape, env-driven provider selection with silent failover, tool definitions, and the message-parts rendering rules. The route is public and recruiter-visible — secrets and persona stay out of it.
 
 ## When to use / when not
 
-- use: adding or editing `app/api/chat/route.ts`; adding a chat tool; changing how the client renders message parts or tool output; touching `getModel()` or provider/model env wiring.
+- use: adding or editing `app/api/chat/route.ts`; changing `lib/chat-fallback.ts` (provider order, breaker, failover); adding a chat tool; changing how the client renders message parts or tool output; touching provider/model env wiring.
 - skip: pure presentational changes to `ChatDrawer` that do not touch `message.parts`, the stream, or tool rendering; work on the scheduler data layer (`lib/google-calendar.ts`, `lib/availability.ts`) that does not change the tool contract.
 
 ## The v6 streaming pattern (canonical)
@@ -17,8 +17,8 @@ The chat backend is a single streaming route (`app/api/chat/route.ts`) plus the 
 The route MUST follow this exact shape. Canonical file: `app/api/chat/route.ts`.
 
 1. Parse `{ messages }: { messages: UIMessage[] }` from the request body.
-2. `streamText({ model: getModel(), system, messages: await convertToModelMessages(messages), stopWhen: stepCountIs(N), tools })`.
-3. `return result.toUIMessageStreamResponse()`.
+2. `streamText({ model: <failover-wrapped model, see Step 3>, maxRetries, system, messages: await convertToModelMessages(messages), stopWhen: stepCountIs(N), tools })`.
+3. `return result.toUIMessageStreamResponse({ onError })`.
 
 Do not hand-roll SSE, do not return `result.toDataStreamResponse()` (pre-v6), do not pass `messages` to `streamText` without `convertToModelMessages` — `useChat` sends `UIMessage[]`, the model needs `ModelMessage[]`.
 Check: `npm run gate` (typecheck — wrong helper names or message types fail `tsc`; the route imports from `ai`).
@@ -27,7 +27,14 @@ Check: `npm run gate` (typecheck — wrong helper names or message types fail `t
 
 1. State the change and which files it touches. If it spans route + client + a styleguide rule, that is multi-file — hit the SCOPE checkpoint first.
 2. Write the test first (Rule "test-first" below). For a route change: a Vitest unit test for the POST handler. For a user-visible flow: a Playwright chat spec in `e2e/`. Red before green. See `notes/styleguide/testing.md` and `notes/styleguide/testing-e2e.md`.
-3. Select the model only through `getModel()` — never inline a model id. `AI_PROVIDER` defaults to `"anthropic"`; `ANTHROPIC_MODEL` defaults to `claude-haiku-4-5-20251001`; `OPENAI_MODEL` defaults to `gpt-4o-mini`. Read every secret from `process.env` at call time. Top of the module: `import "server-only";`.
+3. Select the model through the failover wrapper, never an inline model id. Provider policy lives in `lib/chat-fallback.ts`:
+   - `AI_PROVIDER` (default `gemini`) is the primary; `AI_FALLBACK` (default `anthropic`; `none` disables failover) backs it up. Free Gemini by default, pay for Anthropic only when Gemini is down.
+   - `orderProviders()` returns the attempt order, skipping any provider the in-memory `createBreaker()` has tripped for its cooldown (default 60s) so a known-down provider isn't re-probed every request.
+   - `createFallbackModel(order.map(buildModel))` wraps the models so its `doStream`/`doGenerate` try each in turn: a TRANSIENT reject (429 / 5xx / network — `isTransientProviderError`) fails over to the next provider **in the same request** (the client only ever sees a loading state, never a mid-stream error), trips the breaker, and logs `[chat] provider switch: ...`. A non-transient error (auth / bad-request) rethrows immediately — no silent failover onto the paid provider.
+   - `streamText` gets `maxRetries: 0` when the chain has a fallback (the wrapper owns failover), else `2`.
+   - `onError` on `toUIMessageStreamResponse` only fires when the WHOLE chain fails (failover is internal) — return a friendly masked message there. The `CHAT_ENABLED=false` kill switch returns 503 before streaming, so it never reaches `onError`.
+   - Per-provider model ids come from env: `ANTHROPIC_MODEL` (default `claude-haiku-4-5-20251001`), `GEMINI_MODEL` (default `gemini-2.0-flash`), `OPENAI_MODEL` (default `gpt-4o-mini`). `buildModel()` reads keys from `process.env` at call time.
+   Check: `npm run gate` runs `lib/chat-fallback.test.ts` (breaker, ordering, transient classification, wrapper failover incl. 429-failover / 401-no-failover) + the route handler tests.
 4. Define each tool with `tool({ description, inputSchema: z.object({...}), execute })`. Keep the loop bounded with `stopWhen: stepCountIs(N)` (currently `3`) so a tool that re-triggers the model cannot spin unbounded.
 5. For every tool you add, add the matching client branch in `ChatDrawer` keyed on `part.type === "tool-{name}"`, and handle BOTH terminal states: `output-available` AND `output-error` (see the rules). A pending state is fine, but a tool can fail.
 6. Keep the system prompt / persona out of the committed route file (see the persona rule).
@@ -50,7 +57,7 @@ Each rule names its check, or is labeled `guidance:` with the missing check logg
    guidance: no automated check distinguishes a minimal fallback from a full persona — a reviewer call before commit.
 
 4. **Secrets via `process.env` at call time; `import "server-only"`.**
-   No API key, client email, or private key is ever a literal, a default value, or imported into a client module. `getModel()` and `lib/google-calendar.ts` read keys from `process.env` inside the function. Any module that reads a secret starts with `import "server-only";` so a client import fails the build.
+   No API key, client email, or private key is ever a literal, a default value, or imported into a client module. `buildModel()` (in the route) and `lib/google-calendar.ts` read keys from `process.env` inside the function. Any module that reads a secret starts with `import "server-only";` so a client import fails the build.
    Check: `npm run gate` (build — `server-only` throws at build if pulled into a client bundle). The route is server-only by being an App Router route handler; `lib/google-calendar.ts` already imports `server-only`.
 
 5. **Test-first: route unit test + chat e2e.**

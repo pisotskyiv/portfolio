@@ -21,11 +21,27 @@ function bookUrl(date: string | undefined, time: string): string {
 function formatDate(dateStr?: string): string {
   if (!dateStr) return "";
   const [, m, d] = dateStr.split("-");
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   return `${months[parseInt(m, 10) - 1]} ${parseInt(d, 10)}`;
 }
 
-export function SchedulerCard({ availability: initialAvailability, timezone = "PST" }: SchedulerCardProps) {
+export function SchedulerCard({
+  availability: initialAvailability,
+  timezone = "PST",
+}: SchedulerCardProps) {
   const [popupBlocked, setPopupBlocked] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
   const [availability, setAvailability] = useState(initialAvailability);
@@ -37,7 +53,9 @@ export function SchedulerCard({ availability: initialAvailability, timezone = "P
       setIsLoading(true);
       fetch(`/api/availability?week=${weekOffset}`)
         .then((r) => r.json())
-        .then((data: { availability: DaySchedule[] }) => setAvailability(data.availability))
+        .then((data: { availability: DaySchedule[] }) =>
+          setAvailability(data.availability),
+        )
         .catch(() => {})
         .finally(() => setIsLoading(false));
     });
@@ -99,8 +117,12 @@ export function SchedulerCard({ availability: initialAvailability, timezone = "P
         >
           <ChevronLeft size={14} aria-hidden="true" />
         </button>
-        <span className="font-mono text-[10px] uppercase tracking-badge text-muted">
-          {weekOffset === 0 ? "This week" : weekOffset === 1 ? "Next week" : `+${weekOffset} weeks`}
+        <span className="font-mono text-[12px] font-semibold uppercase tracking-badge text-text">
+          {weekOffset === 0
+            ? "This week"
+            : weekOffset === 1
+              ? "Next week"
+              : `+${weekOffset} weeks`}
         </span>
         <button
           type="button"
@@ -120,11 +142,16 @@ export function SchedulerCard({ availability: initialAvailability, timezone = "P
         </div>
       )}
 
-      <div className={clsx("grid grid-cols-5 divide-x divide-border", isLoading && "opacity-50")}>
+      <div
+        className={clsx(
+          "grid grid-cols-5 divide-x divide-border",
+          isLoading && "opacity-50",
+        )}
+      >
         {availability.map((day) => (
           <div key={day.day} className="flex flex-col">
-            <div className="border-b border-border px-1 py-1.5 text-center">
-              <span className="block font-mono text-[10px] uppercase tracking-badge text-muted">
+            <div className="border-b border-border px-1 py-2.5 text-center">
+              <span className="block font-mono text-[12px] font-semibold uppercase tracking-badge text-text">
                 {day.short}
               </span>
               {day.date && (
@@ -167,7 +194,6 @@ export function SchedulerCard({ availability: initialAvailability, timezone = "P
           className="border-t border-border px-3 py-2"
         />
       )}
-
     </div>
   );
 }

@@ -135,38 +135,65 @@ export const caseStudies: Record<string, CaseStudy> = {
   },
   portfolio: {
     slug: "portfolio",
-    tldr: "Built this portfolio using an agentic engineering workflow: spec-first, TDD throughout, CI-gated, with an AI agent handling implementation while the human owns every architectural decision. The engineering methodology is the showcase.",
+    tldr: "A public, unauthenticated AI chat-and-booking feature engineered to be cheap to run, safe to expose, and still useful when the AI is switched off. A visitor can ask about my work and book a call; behind it sits a multi-provider failover chain, a circuit breaker, and a deterministic booking path the language model is never allowed to execute itself. The engineering decisions — not the chat bubble — are the point.",
     sections: [
       {
-        id: "problem-context",
-        heading: "Problem & Context",
+        id: "how-it-works",
+        heading: "How It Works",
         body: [
-          "Most developer portfolios demonstrate taste in design but obscure how the engineer actually works. I wanted mine to do the opposite — treat the codebase itself as evidence of engineering values.",
-          "The constraint: it had to be production-grade by the time any recruiter saw it. No placeholder tests, no skipped linting, no debt.",
+          "The widget is a streaming chat backed by the AI SDK. A visitor's message hits a Node.js route that streams tokens back as they arrive. When the conversation turns toward scheduling, the model never writes to a calendar — it calls a show_scheduler tool, and the UI renders a live availability grid inline in the chat.",
+          "Picking a slot opens a dedicated booking tab. The visitor signs in with Google, confirms a time, and a separate server route writes the event. Every step that touches real state — availability reads, the booking write — is a deterministic, validated server route. The model's only job is to suggest.",
         ],
       },
       {
-        id: "my-role",
-        heading: "My Role",
+        id: "decision-server-commits",
+        heading: "Decision: The Model Suggests, the Server Commits",
         body: [
-          "Author and architect. Wrote every spec, made every architectural call, reviewed every diff. Claude handled the implementation typing; I owned the decisions.",
+          "The naive version lets the language model book the meeting: give it a calendar tool and let it call the API. That is unsafe and non-deterministic — a model can hallucinate a time, double-book, or be talked into acting on forged input.",
+          "Instead, the model only ever suggests. The actual write goes through an OAuth-gated server route that validates the request with zod, takes the visitor's identity from their verified session rather than the request body (so it can't be forged), and runs a freebusy re-check immediately before insert to guard the double-book race. No language model sits in the commit path.",
+          "This is the line between an agentic demo and a system you can expose to the public: the AI is allowed to be wrong, because nothing it says is load-bearing.",
         ],
       },
       {
-        id: "methodology",
-        heading: "Methodology",
+        id: "decision-failover",
+        heading: "Decision: Free by Default, Paid Only on Failure",
         body: [
-          "Practiced Karpathy's agentic engineering methodology: small, reviewed increments with the agent doing the typing and the human owning direction. Every component was specced before it was built.",
-          "TDD throughout: Vitest + React Testing Library tests written before each component. Playwright E2E tests cover every user-visible flow. 230+ unit and integration tests green in CI on every push.",
-          "Error-before-happy-path convention: error.tsx and loading.tsx defined before each feature route to catch silent failures early rather than after the fact.",
+          "A public AI endpoint is a standing cost. The primary provider is a free-tier model; it only fails over to a paid model when the primary is actually unavailable. The provider order, the failover, and the transient-error classification live in one pure, unit-tested module.",
+          "The subtlety is when to fail over. The AI SDK streams provider errors rather than throwing before the stream opens, so a provider can't be swapped mid-response. The fix is a circuit breaker: a transient failure (429 / 5xx / network) trips a short cooldown, and the next request routes to the fallback. Authentication and bad-request errors (4xx) never trigger failover — those are configuration bugs, and silently failing over would mask the misconfig and double the bill.",
+          "The primary is called with no retries so a quota error trips fast instead of stalling the visitor. The whole policy is tested against an injectable clock, with no live provider required.",
         ],
       },
       {
-        id: "results-impact",
-        heading: "Results & Impact",
+        id: "decision-off-switch",
+        heading: "Decision: Designed for the Off Switch",
         body: [
-          "CI gates (lint, typecheck, test, build) pass on every push. Zero accessibility violations on axe scan. Responsive from 375px to 1280px.",
-          "The workflow itself became a portfolio artifact: the commit history, PR descriptions, and CLAUDE.md document how the project was built as clearly as the code does.",
+          "The most deliberate part of the build is what happens when the AI is turned off. A kill switch disables the chat route before it streams; rate limits and provider outages produce the same dead end.",
+          "In every one of those states, the booking flow still works. The chat surfaces an offline scheduler that fetches availability directly from the server route — no language model involved — so a recruiter can still find a time and book a call. The AI is an enhancement, not a hard dependency.",
+          "This matters in practice: the demo can be switched off to control cost without removing the one action that actually matters.",
+        ],
+      },
+      {
+        id: "decision-no-database",
+        heading: "Decision: Surviving an OAuth Redirect Without a Database",
+        body: [
+          "Booking needs Google sign-in, and Google's OAuth is a full-page redirect — which would normally destroy the in-progress chat conversation, since the site has no persistence layer.",
+          "Booking runs in a separate tab instead, keyed entirely by the URL (date and time) plus the session cookie. That tab runs the whole sign-in to confirm to write lifecycle on its own, then broadcasts the result back to the chat tab over a BroadcastChannel, with a localStorage fallback. The chat shows a toast and the booked slot disappears. No database, no shared server state — the redirect can't wipe anything, because the conversation tab never navigates.",
+        ],
+      },
+      {
+        id: "what-broke",
+        heading: "What Broke",
+        body: [
+          "Two production bugs were worth the scar tissue. The first: Google's freebusy.query doesn't fail when one of the merged calendars is unreadable — it returns that calendar with an errors array and no busy times, so its events silently drop from the merge and I'd look free when I was actually booked. The fix emits a loud, greppable warning for any calendar that comes back with errors, on both the availability read and the booking precheck, while still serving the rest.",
+          "The second: booking worked locally but 503'd in production on every attempt. The service-account private key was quoted in the environment; the local dev server strips the quotes, but the production host keeps them, so OpenSSL threw ERR_OSSL_UNSUPPORTED on a malformed PEM. The fix normalizes the key in code — stripping wrapping quotes and supporting a base64-encoded variant — so it survives any environment-variable host.",
+        ],
+      },
+      {
+        id: "method",
+        heading: "Method",
+        body: [
+          "The build itself is part of the showcase. Tests are written before implementation (Vitest + React Testing Library); every user-visible flow has a Playwright end-to-end test; an axe accessibility scan gates the pages. Error and loading states are defined before the happy path, so silent failures surface early.",
+          "A CI gate — lint, typecheck, test, build — passes on every push, with 230+ unit and integration tests green. The work was built with an agentic engineering workflow where the agent does the typing and I own every architectural decision; the commit history and devlog document the reasoning as clearly as the code does.",
         ],
       },
     ],
