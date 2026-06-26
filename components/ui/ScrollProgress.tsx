@@ -19,11 +19,7 @@ export function ScrollProgress() {
 
   return (
     <div
-      role="progressbar"
-      aria-label="Reading progress"
-      aria-valuenow={Math.round(progress)}
-      aria-valuemin={0}
-      aria-valuemax={100}
+      aria-hidden="true"
       className="fixed left-0 top-0 z-[60] h-0.5 bg-accent"
       style={{ width: `${progress}%` }}
     />
