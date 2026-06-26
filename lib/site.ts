@@ -6,6 +6,9 @@ export type EducationEntry = {
 
 export const siteConfig = {
   name: "Vlad Pisotskyi",
+  // Other spellings/forms of the same name, surfaced to search engines via
+  // schema.org Person `alternateName` so any variant resolves to this person.
+  alternateNames: ["Volodymyr Pisotskyi", "Vlad Pisotski", "Volodymyr Pisotski"],
   title: "Software Engineer",
   pitch:
     "Full-stack engineer focused on AI-powered products — RAG chat systems, streaming LLM interfaces, and LLM evaluation pipelines. TypeScript, Next.js, Node.js, Python.",

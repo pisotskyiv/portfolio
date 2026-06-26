@@ -3,6 +3,7 @@ import { Space_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/lib/site";
 import { themeInitScript } from "@/lib/theme";
+import { personJsonLdString } from "@/lib/structured-data";
 import { AuthProvider } from "@/components/ui/AuthProvider";
 
 const spaceGrotesk = Space_Grotesk({
@@ -53,6 +54,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: personJsonLdString() }}
+        />
       </head>
       <body>
         <a
