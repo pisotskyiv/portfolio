@@ -1,14 +1,21 @@
 import { ImageResponse } from "next/og";
+import { loadInterBlack } from "@/lib/og-fonts";
 
 // Generated as a raster PNG (not SVG) so Google's favicon-in-search reliably
 // picks it up; 96x96 satisfies the "square, multiple of 48px" guideline and
-// downscales cleanly for the browser tab. Brand mark is fixed (copper VP on the
-// dark surface) regardless of the active site theme.
+// downscales cleanly for the browser tab. Brand mark is fixed (dark surface,
+// copper VP) regardless of the active site theme.
+//
+// Inter Black (900) is fetched from Google Fonts at request time; the edge
+// runtime ships only Inter 400/700, so we load 900 explicitly to avoid
+// synthesized-bold artifacts.
 export const runtime = "edge";
 export const size = { width: 96, height: 96 };
 export const contentType = "image/png";
 
-export default function Icon() {
+export default async function Icon() {
+  const fontData = await loadInterBlack();
+
   return new ImageResponse(
     (
       <div
@@ -19,16 +26,22 @@ export default function Icon() {
           alignItems: "center",
           justifyContent: "center",
           background: "#100D0A",
-          color: "#C3753A",
-          fontSize: 52,
-          fontWeight: 700,
-          fontFamily: "sans-serif",
+          color: "#E08535",
+          fontSize: 58,
+          fontWeight: 900,
+          fontFamily: "Inter",
+          letterSpacing: -2,
           borderRadius: 18,
         }}
       >
         VP
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      ...(fontData && {
+        fonts: [{ name: "Inter", data: fontData, weight: 900, style: "normal" as const }],
+      }),
+    },
   );
 }

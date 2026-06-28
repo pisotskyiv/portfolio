@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { loadInterBlack } from "@/lib/og-fonts";
 
 // Apple touch icon: 180x180 PNG, edge-to-edge opaque fill (iOS applies its own
 // rounded-corner mask, so no border-radius / transparency here). Same VP brand
@@ -7,7 +8,9 @@ export const runtime = "edge";
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
-export default function AppleIcon() {
+export default async function AppleIcon() {
+  const fontData = await loadInterBlack();
+
   return new ImageResponse(
     (
       <div
@@ -18,15 +21,21 @@ export default function AppleIcon() {
           alignItems: "center",
           justifyContent: "center",
           background: "#100D0A",
-          color: "#C3753A",
-          fontSize: 96,
-          fontWeight: 700,
-          fontFamily: "sans-serif",
+          color: "#E08535",
+          fontSize: 115,
+          fontWeight: 900,
+          fontFamily: "Inter",
+          letterSpacing: -4,
         }}
       >
         VP
       </div>
     ),
-    { ...size },
+    {
+      ...size,
+      ...(fontData && {
+        fonts: [{ name: "Inter", data: fontData, weight: 900, style: "normal" as const }],
+      }),
+    },
   );
 }
