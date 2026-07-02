@@ -214,6 +214,34 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
                       );
                     }
 
+                    if (part.type === "tool-lookup_bio") {
+                      // Lookup output is model context, never rendered — the
+                      // user only sees a quiet status line per terminal state.
+                      if (part.state === "output-available") {
+                        return (
+                          <div key={i} className="text-xs text-muted">
+                            Checked Vlad&apos;s notes.
+                          </div>
+                        );
+                      }
+                      if (part.state === "output-error") {
+                        return (
+                          <div key={i} className="text-xs text-muted">
+                            Couldn&apos;t reach the background notes — answering
+                            from what I already know.
+                          </div>
+                        );
+                      }
+                      return (
+                        <div
+                          key={i}
+                          className="text-xs text-muted animate-pulse"
+                        >
+                          Checking Vlad&apos;s notes...
+                        </div>
+                      );
+                    }
+
                     return null;
                   })}
                 </div>

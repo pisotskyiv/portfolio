@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import type { UIMessage } from "ai";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getBioPage } from "@/lib/bio-wiki";
 
 // Hoisted so the vi.mock factories below can reference them. Each provider's
 // builder returns a minimal model OBJECT (createFallbackModel Proxies the leader,
@@ -29,6 +30,20 @@ vi.mock("@/lib/rate-limit", () => ({ checkRateLimit: vi.fn() }));
 vi.mock("@/lib/google-calendar", () => ({
   getAvailability: vi.fn().mockResolvedValue([]),
 }));
+vi.mock("@/lib/bio-wiki", () => {
+  const ids = [
+    "ctd-work",
+    "chef-jul",
+    "portfolio-site",
+    "learning-projects",
+    "career-story",
+  ];
+  return {
+    getBioPage: vi.fn(),
+    BIO_TOPIC_IDS: ids,
+    BIO_TOPIC_SUMMARIES: Object.fromEntries(ids.map((id) => [id, id])),
+  };
+});
 vi.mock("@/lib/system-prompt", () => ({
   getSystemPrompt: vi.fn().mockResolvedValue("SYSTEM"),
 }));
@@ -176,5 +191,59 @@ describe("POST /api/chat", () => {
       makeRequest([userMessage("hi")], { "x-forwarded-for": "9.9.9.9, 1.1.1.1" }),
     );
     expect(rateLimitMock).toHaveBeenCalledWith("9.9.9.9");
+  });
+
+  // The `ai` tool() helper is mocked as identity, so the tools object passed to
+  // streamText exposes each tool's config (inputSchema, execute) directly.
+  function streamedTools(): Record<
+    string,
+    { inputSchema: unknown; execute: (input: unknown) => Promise<unknown> }
+  > {
+    return (
+      streamTextMock.mock.calls[0][0] as {
+        tools: Record<
+          string,
+          { inputSchema: unknown; execute: (input: unknown) => Promise<unknown> }
+        >;
+      }
+    ).tools;
+  }
+
+  it("registers lookup_bio alongside show_scheduler", async () => {
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    const tools = streamedTools();
+    expect(tools.show_scheduler).toBeDefined();
+    expect(tools.lookup_bio).toBeDefined();
+  });
+
+  it("lookup_bio rejects a topic outside the enum", async () => {
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    const { inputSchema } = streamedTools().lookup_bio;
+    const schema = inputSchema as {
+      safeParse: (v: unknown) => { success: boolean };
+    };
+    expect(schema.safeParse({ topic: "ctd-work" }).success).toBe(true);
+    expect(schema.safeParse({ topic: "not-a-topic" }).success).toBe(false);
+  });
+
+  it("lookup_bio returns the fetched page content", async () => {
+    (getBioPage as Mock).mockResolvedValue("# CTD deep dive");
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    await expect(
+      streamedTools().lookup_bio.execute({ topic: "ctd-work" }),
+    ).resolves.toEqual({ topic: "ctd-work", content: "# CTD deep dive" });
+    expect(getBioPage).toHaveBeenCalledWith("ctd-work");
+  });
+
+  it("lookup_bio throws when the page is unavailable so the client sees output-error", async () => {
+    (getBioPage as Mock).mockResolvedValue(null);
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    await expect(
+      streamedTools().lookup_bio.execute({ topic: "career-story" }),
+    ).rejects.toThrow(/unavailable/i);
   });
 });

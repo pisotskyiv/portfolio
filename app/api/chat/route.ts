@@ -10,6 +10,11 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 import { getAvailability } from "@/lib/google-calendar";
+import {
+  getBioPage,
+  BIO_TOPIC_IDS,
+  BIO_TOPIC_SUMMARIES,
+} from "@/lib/bio-wiki";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getSystemPrompt } from "@/lib/system-prompt";
 import { MAX_INPUT_CHARS } from "@/lib/chat-limits";
@@ -164,6 +169,19 @@ export async function POST(req: Request) {
           execute: async () => {
             const availability = await getAvailability();
             return { availability };
+          },
+        }),
+        lookup_bio: tool({
+          description: `Look up Vlad's detailed background on one topic before answering questions that need more depth than the persona summary. Topics: ${BIO_TOPIC_IDS.map(
+            (id) => `${id} (${BIO_TOPIC_SUMMARIES[id]})`,
+          ).join("; ")}.`,
+          inputSchema: z.object({ topic: z.enum(BIO_TOPIC_IDS) }),
+          execute: async ({ topic }) => {
+            const content = await getBioPage(topic);
+            // Throw instead of returning empty: the client renders the
+            // output-error state and the model answers from the persona.
+            if (!content) throw new Error(`Bio page "${topic}" unavailable`);
+            return { topic, content };
           },
         }),
       },

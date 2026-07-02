@@ -202,4 +202,47 @@ describe("ChatDrawer", () => {
       screen.queryByText(/checking availability/i),
     ).not.toBeInTheDocument();
   });
+
+  it("renders a quiet note when a bio lookup succeeds", () => {
+    mockMessages = [
+      {
+        id: "1",
+        role: "assistant",
+        parts: [
+          {
+            type: "tool-lookup_bio",
+            toolCallId: "tc1",
+            state: "output-available",
+            output: { topic: "ctd-work", content: "# CTD deep dive" },
+          },
+        ],
+      },
+    ] as unknown as UIMessage[];
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.getByText(/checked vlad's notes/i)).toBeInTheDocument();
+    // The raw page content is model context, never rendered to the user.
+    expect(screen.queryByText(/CTD deep dive/)).not.toBeInTheDocument();
+  });
+
+  it("renders a fallback for a failed bio lookup, not a spinner", () => {
+    mockMessages = [
+      {
+        id: "1",
+        role: "assistant",
+        parts: [
+          {
+            type: "tool-lookup_bio",
+            toolCallId: "tc1",
+            state: "output-error",
+            errorText: "boom",
+          },
+        ],
+      },
+    ] as unknown as UIMessage[];
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(
+      screen.getByText(/couldn't reach the background notes/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/checking vlad's notes/i)).not.toBeInTheDocument();
+  });
 });
