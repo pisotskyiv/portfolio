@@ -19,38 +19,40 @@ async function flipTo(page: Page, dark: boolean) {
 }
 
 test.describe("Theme toggle", () => {
-  test("flips from light to dark on click", async ({ page }) => {
+  test("flips from dark (default) to light on click", async ({ page }) => {
     await page.goto("/");
-    expect(await isDark(page)).toBe(false);
-    await flipTo(page, true);
+    expect(await isDark(page)).toBe(true);
+    await flipTo(page, false);
   });
 
-  test("flips back to light on a second click", async ({ page }) => {
+  test("flips back to dark on a second click", async ({ page }) => {
     await page.goto("/");
-    await flipTo(page, true);
     await flipTo(page, false);
+    await flipTo(page, true);
   });
 
   test("persists the choice across a reload (no flash on return)", async ({
     page,
   }) => {
     await page.goto("/");
-    await flipTo(page, true);
+    await flipTo(page, false);
 
     await page.reload();
     // Set by the blocking <head> script before paint — present immediately,
     // independent of hydration.
-    expect(await isDark(page)).toBe(true);
+    expect(await isDark(page)).toBe(false);
   });
 });
 
 test.describe("Theme toggle — accessibility", () => {
-  test("home page passes axe in dark mode", async ({ page }) => {
-    // Reduced motion kills the 300ms color transition so axe samples the
-    // settled dark palette, not an intermediate blended frame.
+  test("home page passes axe in light mode", async ({ page }) => {
+    // Dark is the default, so the home/work/chat specs already scan the dark
+    // palette; flipping here keeps the light palette covered. Reduced motion
+    // kills the 300ms color transition so axe samples the settled palette,
+    // not an intermediate blended frame.
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/");
-    await flipTo(page, true);
+    await flipTo(page, false);
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
   });
