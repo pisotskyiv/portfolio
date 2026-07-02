@@ -9,11 +9,20 @@ export const siteConfig = {
   // Other spellings/forms of the same name, surfaced to search engines via
   // schema.org Person `alternateName` so any variant resolves to this person.
   alternateNames: ["Volodymyr Pisotskyi", "Vlad Pisotski", "Volodymyr Pisotski"],
+  // Name form used ONLY in the page title + meta tags (browser tab + search
+  // result), never in visible body copy — body uses `name`. Carries the formal
+  // first name so a "Volodymyr Pisotskyi" search can match on-page text, not
+  // just JSON-LD alternateName (which is entity-merge, not a ranking signal).
+  seoName: "Vlad (Volodymyr) Pisotskyi",
   title: "Software Engineer",
   pitch:
     "Full-stack engineer focused on AI-powered products — RAG chat systems, streaming LLM interfaces, and LLM evaluation pipelines. TypeScript, Next.js, Node.js, Python.",
   shortPitch:
     "Full-stack engineer specializing in AI — I build RAG chat systems, streaming LLM interfaces, and evaluation pipelines that ship to production.",
+  // Meta description for the home page (html/OG/Twitter only, not rendered in
+  // body). Leads with the full name for name-search matching; kept ~150 chars.
+  metaDescription:
+    "Vlad (Volodymyr) Pisotskyi — full-stack software engineer building AI products: RAG chat systems, streaming LLM interfaces, and evaluation pipelines.",
   about:
     "I focus on writing performant, maintainable, production-ready code and shipping systems that hold up under real-world use. At Code the Dream I work on an AI-powered benefits chatbot built on Retrieval-Augmented Generation, where I own evaluation infrastructure end to end — from LLM-as-a-Judge scoring pipelines and Langfuse observability to the streaming chat interfaces users actually see.",
   location: "San Francisco, CA",

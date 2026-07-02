@@ -24,17 +24,19 @@ const BASE_URL = "https://www.pisotskyiv.dev";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: `${siteConfig.name} — ${siteConfig.title}`,
+    // Home title carries the formal first name for name-search; subpages keep
+    // the short suffix so titles stay clean.
+    default: `${siteConfig.seoName} — ${siteConfig.title}`,
     template: `%s — ${siteConfig.name}`,
   },
-  description: siteConfig.pitch,
+  description: siteConfig.metaDescription,
   alternates: { canonical: "/" },
-  authors: [{ name: siteConfig.name }],
+  authors: [{ name: siteConfig.seoName }],
   // Public Search Console token (not a secret — rendered into page HTML).
   verification: { google: "_nKuqgYjQTkCRDiAfPTabFgOIhKquW7IaZ8xh_otsrs" },
   openGraph: {
-    title: `${siteConfig.name} — ${siteConfig.title}`,
-    description: siteConfig.pitch,
+    title: `${siteConfig.seoName} — ${siteConfig.title}`,
+    description: siteConfig.metaDescription,
     type: "website",
     url: BASE_URL,
     siteName: siteConfig.name,
@@ -42,8 +44,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — ${siteConfig.title}`,
-    description: siteConfig.pitch,
+    title: `${siteConfig.seoName} — ${siteConfig.title}`,
+    description: siteConfig.metaDescription,
   },
 };
 
