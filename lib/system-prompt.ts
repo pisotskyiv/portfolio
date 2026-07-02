@@ -21,11 +21,24 @@ async function fetchPart(url: string): Promise<string | null> {
       return null;
     }
     const text = (await res.text()).trim();
+    // A gist PAGE url (missing /raw/) returns GitHub's HTML document with a
+    // 200 — reject it rather than inject ~100KB of markup as the prompt.
+    if (looksLikeHtml(text)) {
+      console.warn(
+        `[system-prompt] fetch ${url} returned HTML (non-raw gist url?); skipping`,
+      );
+      return null;
+    }
     return text || null;
   } catch (err) {
     console.warn(`[system-prompt] fetch ${url} failed; skipping`, err);
     return null;
   }
+}
+
+export function looksLikeHtml(text: string): boolean {
+  const head = text.slice(0, 100).toLowerCase();
+  return head.startsWith("<!doctype") || head.startsWith("<html");
 }
 
 export async function getSystemPrompt(): Promise<string> {

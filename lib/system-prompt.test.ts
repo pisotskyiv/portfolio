@@ -94,4 +94,22 @@ describe("getSystemPrompt", () => {
 
     await expect(getSystemPrompt()).resolves.toBe(FALLBACK_PROMPT);
   });
+
+  it("rejects an HTML response (misconfigured non-raw gist URL) instead of injecting it", async () => {
+    // A gist PAGE url (missing /raw/) returns the GitHub HTML document with
+    // status 200 — that must never become the system prompt.
+    vi.stubEnv("SYSTEM_PROMPT_URL", "https://gist.github.com/user/abc123");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response("\n\n<!DOCTYPE html>\n<html lang=\"en\"><head>...</head></html>", {
+            status: 200,
+          }),
+        ),
+    );
+
+    await expect(getSystemPrompt()).resolves.toBe(FALLBACK_PROMPT);
+  });
 });
