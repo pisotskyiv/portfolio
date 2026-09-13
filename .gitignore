@@ -50,6 +50,7 @@ CLAUDE.local.md
 
 # graphify knowledge graph (local tooling output, may index internal notes)
 /graphify-out/
+/public/graph.html
 
 # personal machine-specific Claude Code settings
 .claude/settings.local.json
