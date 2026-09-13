@@ -24,7 +24,17 @@ export type ResolvedModel = Exclude<LanguageModel, string>;
 export type ChatProvider = "gemini" | "anthropic" | "openai";
 
 export const FALLBACK_COOLDOWN_MS = 60_000;
-export const FIRST_TOKEN_TIMEOUT_MS = 10_000;
+/** 30s, not 10s (2026-09-13): prod logs showed a live failover tripping on
+ * FirstTokenTimeoutError with Gemini healthy seconds later (probe: "ok") —
+ * 10s was too tight for gemini-3.5-flash's round trip through the
+ * `lookup_bio` tool call before its first token. This watchdog only guards a
+ * silent hang (no error, no token) — a real rejection (429/5xx) fails over
+ * immediately regardless of this value. Kept with real margin under the
+ * route's hard 55s STREAM_ABORT_MS so a failover still leaves the fallback
+ * provider time to stream a full answer; raising this much closer to 55s
+ * would mean a genuine hang gets no failover at all, just dead air until the
+ * hard abort. */
+export const FIRST_TOKEN_TIMEOUT_MS = 30_000;
 
 /** Short hold on Gemini right after a failover, until the post-response probe
  * (route's `after()` callback) resolves and decides the real cooldown. Keeps a
@@ -47,9 +57,15 @@ export const geminiHealth: { quotaExhausted: boolean } = { quotaExhausted: false
  * classifies as transient — a hang fails over exactly like a 429.
  */
 export class FirstTokenTimeoutError extends Error {
-  constructor(provider: string, timeoutMs: number) {
+  /** Wall-clock ms actually elapsed when the watchdog fired — logged so prod
+   * timing can be compared against the configured deadline without re-deriving
+   * it from timestamps. */
+  readonly elapsedMs?: number;
+
+  constructor(provider: string, timeoutMs: number, elapsedMs?: number) {
     super(`no first token from ${provider} within ${timeoutMs}ms`);
     this.name = "FirstTokenTimeoutError";
+    this.elapsedMs = elapsedMs;
   }
 }
 
@@ -215,6 +231,7 @@ async function streamWithFirstTokenDeadline(
   options: unknown,
   timeoutMs: number,
 ): Promise<unknown> {
+  const start = Date.now();
   const controller = new AbortController();
   const outer = (options as { abortSignal?: AbortSignal } | null)?.abortSignal;
   if (outer?.aborted) controller.abort(outer.reason);
@@ -225,7 +242,11 @@ async function streamWithFirstTokenDeadline(
     timer = setTimeout(() => {
       controller.abort();
       reject(
-        new FirstTokenTimeoutError(String(model.provider ?? "provider"), timeoutMs),
+        new FirstTokenTimeoutError(
+          String(model.provider ?? "provider"),
+          timeoutMs,
+          Date.now() - start,
+        ),
       );
     }, timeoutMs);
   });

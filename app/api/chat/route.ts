@@ -25,6 +25,7 @@ import {
   orderProviders,
   createFallbackModel,
   isTransientProviderError,
+  FirstTokenTimeoutError,
   probeGemini,
   geminiHealth,
   PROBE_HOLD_MS,
@@ -213,8 +214,15 @@ export async function POST(req: Request) {
             : err instanceof Error
               ? err.name
               : "unknown";
+        // Only FirstTokenTimeoutError carries elapsedMs — real elapsed time at
+        // the moment the watchdog fired, so prod logs show actual hang timing
+        // against the configured deadline instead of just the deadline itself.
+        const elapsedMs =
+          err instanceof FirstTokenTimeoutError ? err.elapsedMs : undefined;
         console.warn(
-          `[chat] provider switch: ${failed} failed (status=${status}), failing over to ${next} silently`,
+          `[chat] provider switch: ${failed} failed (status=${status}${
+            elapsedMs !== undefined ? `, elapsedMs=${elapsedMs}` : ""
+          }), failing over to ${next} silently`,
         );
       },
     });
