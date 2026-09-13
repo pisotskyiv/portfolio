@@ -20,15 +20,15 @@ Anything checkable against the repo: a named file, route, symbol, env var, type 
 
 1. **Mechanical sweep first.** Run each check; every hit is a lead, not a verdict — confirm before editing.
    - Dead file refs in skills and CLAUDE.md (path-shaped tokens only — bare filenames are prose, not refs).
-     Check: `grep -rhoE "[A-Za-z0-9_.()\[\]-]+(/[A-Za-z0-9_.()\[\]-]+)+\.(ts|tsx|css|sh|json|md)" .claude/skills CLAUDE.md | grep -v '[*<]' | sort -u | while read -r p; do [ -e "$p" ] || echo "DEAD: $p"; done` — known-intentional hits, do not "fix": `lib/availability.test.ts` (tdd-flow documents it as expected-but-missing) and `notes/styleguide/x.md` (skill-authoring's hypothetical example). Anything else must be empty or explained.
+     Check: `grep -rhoE "[A-Za-z0-9_.()\[\]-]+(/[A-Za-z0-9_.()\[\]-]+)+\.(ts|tsx|css|sh|json|md)" .claude/skills CLAUDE.md | grep -v '[*<]' | sort -u | while read -r p; do [ -e "$p" ] || echo "DEAD: $p"; done` — known-intentional hits, do not "fix": `lib/availability.test.ts` (tdd-flow documents it as expected-but-missing), `notes/styleguide/x.md` (skill-authoring's hypothetical example), and `graphify-out/manifest.json` (machine-local graphify output, gitignored — present here, absent on a fresh clone). Anything else must be empty or explained.
    - Line-number refs in skills.
      Check: `grep -rnE "\.(ts|tsx|css):[0-9]+" .claude/skills` — must be empty. Rule: skills never cite line numbers; they rot within weeks. Name the symbol or say "search for `<name>`" instead.
    - Untested components.
      Check: `for f in components/ui/*.tsx components/sections/*.tsx; do case "$f" in *test*) continue;; esac; [ -f "${f%.tsx}.test.tsx" ] || echo "UNTESTED: $f"; done` — must be empty (CLAUDE.md "every component gets a test").
    - Version claims vs `package.json`.
      Check: read the Stack bullet in CLAUDE.md and any version claim in skills; compare majors against `package.json`. Judgment on wording, mechanical on numbers.
-   - Published graph freshness.
-     Check: `[ "$(git log -1 --format=%ct -- . ':(exclude)public/graph.html')" -lt "$(stat -f %m public/graph.html)" ] && echo FRESH || echo STALE` — STALE means run ship-check step 2b (graphify update + export + copy).
+   - Local knowledge-graph freshness (machine-local tooling — skip when `graphify-out/` is absent; nothing here ships).
+     Check: `[ -f graphify-out/manifest.json ] && { [ "$(git log -1 --format=%ct)" -lt "$(stat -f %m graphify-out/manifest.json)" ] && echo FRESH || echo STALE; } || echo "no local graph, skip"` — STALE means run `graphify update .` (ship-check step 2b). `public/graph.html` is gitignored and untracked as of 2026-09-13, so a stale graph misleads local queries only, never the deployed site.
    - Machine-local paths in committed settings.
      Check: `grep -n "/Users/" .claude/settings.json` — must be empty; machine-local permissions live in gitignored `.claude/settings.local.json`.
 2. **Claim audit — agent-driven.** Mechanical greps cannot catch a claim that is well-formed but false (a documented architecture that was deleted, copy promising an hourly reset on a daily limiter). Spawn parallel subagents, one per cluster, each instructed to compare EVERY concrete claim against code and report only mismatches with file + what-doc-says + what-code-says:
