@@ -1,6 +1,6 @@
 # Portfolio — Vlad Pisotskyi
 
-[![CI](https://github.com/vlad-pisotskyi/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/vlad-pisotskyi/portfolio/actions/workflows/ci.yml)
+[![CI](https://github.com/pisotskyiv/portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/pisotskyiv/portfolio/actions/workflows/ci.yml)
 
 Personal portfolio site for an AI/LLM-focused full-stack engineer. The build process is itself part of the showcase: test-driven, CI-gated, shipped via an agentic-engineering workflow.
 
