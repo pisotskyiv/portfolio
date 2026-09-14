@@ -7,6 +7,7 @@ import { ArrowUp, X } from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { Streamdown } from "streamdown";
 import { SchedulerCard } from "./SchedulerCard";
+import { Toast } from "./Toast";
 import type { DaySchedule } from "@/lib/availability";
 import { siteConfig } from "@/lib/site";
 import { MAX_INPUT_CHARS } from "@/lib/chat-limits";
@@ -53,6 +54,10 @@ type RetryState =
   | { phase: "retrying" }
   | { phase: "given-up" };
 
+const PERSONA_DEGRADED_DISMISS_MS = 8000;
+const PERSONA_DEGRADED_MESSAGE =
+  "Couldn't load Vlad's full profile info — answering with general knowledge only.";
+
 export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [input, setInput] = useState("");
@@ -67,6 +72,34 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
   const [retry, setRetry] = useState<RetryState | null>(null);
   const [retriesSpent, setRetriesSpent] = useState(0);
   const [prevError, setPrevError] = useState<Error | undefined>(undefined);
+  const [showPersonaDegraded, setShowPersonaDegraded] = useState(false);
+  const [personaDegradedNotified, setPersonaDegradedNotified] = useState(false);
+
+  // Adjust-during-render, like the error/retry state above: fires once per
+  // session on the first reply that carries the flag — a silent fallback to
+  // the generic prompt is exactly the kind of failure the user has to know
+  // about (notes/styleguide/error-handling.md), but it shouldn't re-toast on
+  // every subsequent message in the same conversation.
+  if (!personaDegradedNotified) {
+    const degraded = messages.some(
+      (m) =>
+        m.role === "assistant" &&
+        (m.metadata as ChatMessageMetadata | undefined)?.personaDegraded,
+    );
+    if (degraded) {
+      setPersonaDegradedNotified(true);
+      setShowPersonaDegraded(true);
+    }
+  }
+
+  useEffect(() => {
+    if (!showPersonaDegraded) return;
+    const id = setTimeout(
+      () => setShowPersonaDegraded(false),
+      PERSONA_DEGRADED_DISMISS_MS,
+    );
+    return () => clearTimeout(id);
+  }, [showPersonaDegraded]);
 
   // Adjust-during-render, not an effect: a NEW error starts the countdown
   // (transient outage, first failure), reports given-up (the one auto-retry
@@ -205,6 +238,16 @@ export function ChatDrawer({ isOpen, onClose }: ChatDrawerProps) {
             onClick={onClose}
             aria-hidden="true"
           />
+
+          <AnimatePresence>
+            {showPersonaDegraded && (
+              <Toast
+                variant="error"
+                message={PERSONA_DEGRADED_MESSAGE}
+                onDismiss={() => setShowPersonaDegraded(false)}
+              />
+            )}
+          </AnimatePresence>
 
           <motion.div
             id="chat-drawer"

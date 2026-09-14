@@ -18,6 +18,8 @@ vi.mock("framer-motion", () => ({
       );
     },
   },
+  // Toast (rendered for the persona-degraded notice) reads this directly.
+  useReducedMotion: () => false,
 }));
 
 const mockSendMessage = vi.fn();
@@ -719,5 +721,59 @@ describe("countdown retry", () => {
     );
     render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
     expect(screen.getByRole("alert")).not.toHaveTextContent(/case study/i);
+  });
+});
+
+describe("persona-degraded toast", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function assistantWithDegraded(degraded?: boolean): UIMessage {
+    return {
+      id: `a-${degraded ?? "none"}`,
+      role: "assistant",
+      parts: [{ type: "text", text: "hi" }],
+      metadata: { provider: "gemini", ...(degraded ? { personaDegraded: true } : {}) },
+    } as unknown as UIMessage;
+  }
+
+  it("stays quiet when no reply is flagged degraded", () => {
+    mockMessages = [assistantWithDegraded(false)];
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.queryByText(/full profile info/i)).not.toBeInTheDocument();
+  });
+
+  it("toasts when a reply carries personaDegraded metadata", () => {
+    mockMessages = [assistantWithDegraded(true)];
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.getByRole("status")).toHaveTextContent(/full profile info/i);
+  });
+
+  it("dismisses on the close button", async () => {
+    const user = userEvent.setup();
+    mockMessages = [assistantWithDegraded(true)];
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /dismiss/i }));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("auto-dismisses after 8 s", () => {
+    vi.useFakeTimers();
+    mockMessages = [assistantWithDegraded(true)];
+    render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(8001));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("does not re-toast for a later degraded reply once already dismissed this session", async () => {
+    const user = userEvent.setup();
+    mockMessages = [assistantWithDegraded(true)];
+    const { rerender } = render(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /dismiss/i }));
+    mockMessages = [assistantWithDegraded(true), assistantWithDegraded(true)];
+    rerender(<ChatDrawer isOpen={true} onClose={vi.fn()} />);
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

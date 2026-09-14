@@ -41,17 +41,33 @@ export function looksLikeHtml(text: string): boolean {
   return head.startsWith("<!doctype") || head.startsWith("<html");
 }
 
-export async function getSystemPrompt(): Promise<string> {
+export interface SystemPromptResult {
+  prompt: string;
+  /** True when a CONFIGURED url (SYSTEM_PROMPT_URL and/or PERSONA_URL) was
+   * fetched but came back unusable — network failure, non-OK status, blank
+   * content, or an HTML page instead of raw markdown. Distinct from the var
+   * simply being unset, which is a normal local-dev state and not a failure
+   * worth surfacing to the user. */
+  degraded: boolean;
+}
+
+export async function getSystemPrompt(): Promise<SystemPromptResult> {
   const systemUrl = process.env.SYSTEM_PROMPT_URL;
   const personaUrl = process.env.PERSONA_URL;
 
-  if (!systemUrl && !personaUrl) return FALLBACK_PROMPT;
+  if (!systemUrl && !personaUrl) {
+    return { prompt: FALLBACK_PROMPT, degraded: false };
+  }
 
   const [systemPart, personaPart] = await Promise.all([
     systemUrl ? fetchPart(systemUrl) : Promise.resolve(null),
     personaUrl ? fetchPart(personaUrl) : Promise.resolve(null),
   ]);
 
+  const degraded =
+    (Boolean(systemUrl) && systemPart === null) ||
+    (Boolean(personaUrl) && personaPart === null);
+
   const combined = [systemPart, personaPart].filter(Boolean).join("\n\n");
-  return combined || FALLBACK_PROMPT;
+  return { prompt: combined || FALLBACK_PROMPT, degraded };
 }

@@ -19,6 +19,9 @@ export interface ChatMessageMetadata {
   provider?: ChatProvider;
   /** True when the model stopped at the output-token cap, not a natural end. */
   truncated?: boolean;
+  /** True when the persona/system-prompt gist(s) were unreachable this
+   * request and the chat is running on the generic fallback prompt. */
+  personaDegraded?: boolean;
 }
 
 /**

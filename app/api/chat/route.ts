@@ -227,13 +227,15 @@ export async function POST(req: Request) {
       },
     });
 
+    const systemPrompt = await getSystemPrompt();
+
     const result = streamText({
       model,
       // The wrapper handles failover, so don't let streamText re-run the whole
       // chain on a transient error when a fallback exists. A lone provider keeps
       // real retries.
       maxRetries: order.length > 1 ? 0 : 2,
-      system: await getSystemPrompt(),
+      system: systemPrompt.prompt,
       messages: await convertToModelMessages(messages),
       abortSignal: AbortSignal.timeout(STREAM_ABORT_MS),
       stopWhen: stepCountIs(3),
@@ -300,7 +302,16 @@ export async function POST(req: Request) {
       // value). The client badge renders this. The final finish also marks a
       // length-capped answer so the client can label the cut honestly.
       messageMetadata: ({ part }) => {
-        if (part.type === "start" || part.type === "finish-step") {
+        // Stamped once at start (not every finish-step) — a one-time flag for
+        // the client toast to key off, not something that should re-render
+        // per step.
+        if (part.type === "start") {
+          return {
+            provider: activeProvider,
+            ...(systemPrompt.degraded ? { personaDegraded: true } : {}),
+          };
+        }
+        if (part.type === "finish-step") {
           return { provider: activeProvider };
         }
         if (part.type === "finish") {

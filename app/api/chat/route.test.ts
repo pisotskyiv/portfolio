@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import type { UIMessage } from "ai";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getBioPage } from "@/lib/bio-wiki";
+import { getSystemPrompt } from "@/lib/system-prompt";
 
 // Hoisted so the vi.mock factories below can reference them. Each provider's
 // builder returns a minimal model OBJECT (createFallbackModel Proxies the leader,
@@ -58,7 +59,7 @@ vi.mock("@/lib/bio-wiki", () => {
   };
 });
 vi.mock("@/lib/system-prompt", () => ({
-  getSystemPrompt: vi.fn().mockResolvedValue("SYSTEM"),
+  getSystemPrompt: vi.fn().mockResolvedValue({ prompt: "SYSTEM", degraded: false }),
 }));
 vi.mock("@ai-sdk/anthropic", () => ({ createAnthropic: () => anthropicBuild }));
 vi.mock("@ai-sdk/openai", () => ({ createOpenAI: () => openaiBuild }));
@@ -340,6 +341,29 @@ describe("provider metadata for the client badge", () => {
     await POST(makeRequest([userMessage("hi")]));
     expect(metadataFor(getOpts(), "finish")).toEqual({ provider: "gemini" });
     expect(metadataFor(getOpts(), "text-delta")).toBeUndefined();
+  });
+
+  it("stamps only the provider on start when the persona loaded fine", async () => {
+    const getOpts = captureResponseOpts();
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    expect(metadataFor(getOpts(), "start")).toEqual({ provider: "gemini" });
+  });
+
+  it("stamps personaDegraded on start when the system prompt fell back", async () => {
+    (getSystemPrompt as Mock).mockResolvedValueOnce({
+      prompt: "FALLBACK",
+      degraded: true,
+    });
+    const getOpts = captureResponseOpts();
+    const { POST } = await import("./route");
+    await POST(makeRequest([userMessage("hi")]));
+    expect(metadataFor(getOpts(), "start")).toEqual({
+      provider: "gemini",
+      personaDegraded: true,
+    });
+    // Not repeated on every step — the client toast keys off "start" once.
+    expect(metadataFor(getOpts(), "finish-step")).toEqual({ provider: "gemini" });
   });
 
   it("stamps the fallback provider after a same-request failover", async () => {
