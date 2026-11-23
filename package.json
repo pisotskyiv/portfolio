@@ -16,10 +16,10 @@
     "ship": "npm run gate && npm run test:e2e"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.85",
-    "@ai-sdk/google": "^3.0.83",
-    "@ai-sdk/openai": "^3.0.73",
-    "@ai-sdk/react": "^3.0.210",
+    "@ai-sdk/anthropic": "^3.0.143",
+    "@ai-sdk/google": "^3.0.148",
+    "@ai-sdk/openai": "^3.0.145",
+    "@ai-sdk/react": "^3.0.339",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^2.0.1",
