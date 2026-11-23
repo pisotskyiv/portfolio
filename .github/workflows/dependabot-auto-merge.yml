@@ -1,0 +1,21 @@
+name: Dependabot auto-merge
+
+# Queues every Dependabot PR for auto-merge. GitHub merges it only after the
+# required CI check ("verify") passes, per the main branch protection rule. A
+# red PR stays open for a human.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
