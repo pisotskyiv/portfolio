@@ -16,7 +16,7 @@
     "ship": "npm run gate && npm run test:e2e"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.143",
+    "@ai-sdk/anthropic": "^4.0.106",
     "@ai-sdk/google": "^3.0.148",
     "@ai-sdk/openai": "^3.0.145",
     "@ai-sdk/react": "^3.0.339",
