@@ -23,6 +23,12 @@ export async function POST(req: Request): Promise<Response> {
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const rate = await checkBookingRateLimit(ip);
+  if (rate.unavailable) {
+    return Response.json(
+      { error: "Booking is temporarily unavailable. Try again later." },
+      { status: 503 },
+    );
+  }
   if (!rate.success) {
     return Response.json(
       { error: "Too many booking attempts. Try again later." },

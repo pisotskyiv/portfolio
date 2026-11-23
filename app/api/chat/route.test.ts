@@ -192,6 +192,22 @@ describe("POST /api/chat", () => {
     expect(streamTextMock).not.toHaveBeenCalled();
   });
 
+  it("returns 503 fatal (not 429) when the rate limiter is unavailable", async () => {
+    rateLimitMock.mockResolvedValue({
+      success: false,
+      remaining: 0,
+      limit: 10,
+      reset: 0,
+      enforced: false,
+      unavailable: true,
+    });
+    const { POST } = await import("./route");
+    const res = await POST(makeRequest([userMessage("hi")]));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ code: "fatal" });
+    expect(streamTextMock).not.toHaveBeenCalled();
+  });
+
   it("streams a response on the happy path with an output cap", async () => {
     const { POST } = await import("./route");
     const res = await POST(makeRequest([userMessage("What are your skills?")]));

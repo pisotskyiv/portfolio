@@ -77,6 +77,58 @@ describe("checkRateLimit", () => {
   });
 });
 
+describe("rate limiter outage", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    limitMock.mockReset();
+    process.env.VERCEL_ENV = "production";
+    process.env.UPSTASH_REDIS_REST_URL = "https://gone.upstash.io";
+    process.env.UPSTASH_REDIS_REST_TOKEN = "token";
+  });
+
+  it("blocks and flags unavailable instead of throwing when Redis is unreachable", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    limitMock.mockRejectedValue(new TypeError("fetch failed"));
+    const { checkRateLimit } = await import("./rate-limit");
+    const res = await checkRateLimit("1.2.3.4");
+    expect(res.success).toBe(false);
+    expect(res.enforced).toBe(false);
+    expect(res.unavailable).toBe(true);
+    expect(errSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[rate-limit] redis unreachable"),
+      expect.any(TypeError),
+    );
+    errSpy.mockRestore();
+  });
+
+  it("flags unavailable for the booking limiter too", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    limitMock.mockRejectedValue(new TypeError("fetch failed"));
+    const { checkBookingRateLimit } = await import("./rate-limit");
+    const res = await checkBookingRateLimit("1.2.3.4");
+    expect(res.success).toBe(false);
+    expect(res.unavailable).toBe(true);
+    errSpy.mockRestore();
+  });
+
+  it("flags unavailable when Upstash is not configured in production", async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    const { checkRateLimit } = await import("./rate-limit");
+    const res = await checkRateLimit("1.2.3.4");
+    expect(res.success).toBe(false);
+    expect(res.unavailable).toBe(true);
+  });
+
+  it("does not flag unavailable on a normal over-limit block", async () => {
+    limitMock.mockResolvedValue({ success: false, remaining: 0, limit: 10, reset: 1 });
+    const { checkRateLimit } = await import("./rate-limit");
+    const res = await checkRateLimit("1.2.3.4");
+    expect(res.success).toBe(false);
+    expect(res.unavailable).toBeFalsy();
+  });
+});
+
 describe("checkBookingRateLimit", () => {
   beforeEach(() => {
     vi.resetModules();

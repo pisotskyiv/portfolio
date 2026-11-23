@@ -157,6 +157,13 @@ export async function POST(req: Request) {
     }
 
     const rate = await checkRateLimit(clientIp(req));
+    if (rate.unavailable) {
+      // Limiter outage, not the visitor's fault: no "rate limit" copy.
+      return Response.json(
+        { error: "Chat is temporarily unavailable.", code: "fatal" },
+        { status: 503 },
+      );
+    }
     if (!rate.success) {
       return Response.json(
         {

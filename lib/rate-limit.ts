@@ -18,6 +18,11 @@ export interface RateLimitResult {
   // closed — an unmetered public endpoint that spends LLM budget is worse
   // than a down one.
   enforced: boolean;
+  // true when the block is an outage (Redis unreachable or Upstash not
+  // configured in production), not a caller over its budget. Callers answer
+  // 503 instead of 429 so the client never tells a visitor they hit a limit
+  // they didn't.
+  unavailable?: boolean;
 }
 
 // One memoized limiter per prefix. A stored `null` means Upstash env is
@@ -59,10 +64,35 @@ async function check(
   }
   const l = getLimiter(prefix, max);
   if (!l) {
-    return { success: false, remaining: 0, limit: max, reset: 0, enforced: false };
+    return {
+      success: false,
+      remaining: 0,
+      limit: max,
+      reset: 0,
+      enforced: false,
+      unavailable: true,
+    };
   }
-  const { success, remaining, limit, reset } = await l.limit(identifier);
-  return { success, remaining, limit, reset, enforced: true };
+  try {
+    const { success, remaining, limit, reset } = await l.limit(identifier);
+    return { success, remaining, limit, reset, enforced: true };
+  } catch (err) {
+    // Redis down or deleted (DNS miss, auth error, timeout). Still fail
+    // closed, but name the cause in the log instead of letting the throw
+    // surface as a generic route failure.
+    console.error(
+      `[rate-limit] redis unreachable (${prefix}); blocking (fail-closed)`,
+      err,
+    );
+    return {
+      success: false,
+      remaining: 0,
+      limit: max,
+      reset: 0,
+      enforced: false,
+      unavailable: true,
+    };
+  }
 }
 
 /** Per-IP limit for the public chat endpoint. */

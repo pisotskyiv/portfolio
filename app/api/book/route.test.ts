@@ -63,6 +63,14 @@ describe("POST /api/book", () => {
     expect(bookSlotMock).not.toHaveBeenCalled();
   });
 
+  it("returns 503 (not 429) when the rate limiter is unavailable", async () => {
+    bookingRateMock.mockResolvedValue({ success: false, enforced: false, unavailable: true });
+    const { POST } = await import("./route");
+    const res = await POST(makeRequest(VALID));
+    expect(res.status).toBe(503);
+    expect(bookSlotMock).not.toHaveBeenCalled();
+  });
+
   it("returns 400 for a malformed body", async () => {
     const { POST } = await import("./route");
     const res = await POST(makeRequest({ date: "01/15/2030", time: "9am" }));
