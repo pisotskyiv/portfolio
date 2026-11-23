@@ -1,18 +1,18 @@
 ---
 name: chatbot-api
-description: Governs the streaming AI chat route and its tools — the AI SDK v6 pattern, multi-provider selection + silent failover from env, tool definitions, and the client-side message-parts contract. Use when adding or changing app/api/chat/route.ts, lib/chat-fallback.ts, a chat tool, or how ChatDrawer renders tool output.
+description: Governs the streaming AI chat route and its tools — the AI SDK v7 pattern, multi-provider selection + silent failover from env, tool definitions, and the client-side message-parts contract. Use when adding or changing app/api/chat/route.ts, lib/chat-fallback.ts, a chat tool, or how ChatDrawer renders tool output.
 ---
 
 # chatbot-api
 
-The chat backend is a streaming route (`app/api/chat/route.ts`) + the provider failover policy (`lib/chat-fallback.ts`) + the client that renders the stream (`components/ui/ChatDrawer.tsx`). This skill is the contract for all three: the v6 streaming shape, env-driven provider selection with silent failover, tool definitions, and the message-parts rendering rules. The route is public and recruiter-visible — secrets and persona stay out of it.
+The chat backend is a streaming route (`app/api/chat/route.ts`) + the provider failover policy (`lib/chat-fallback.ts`) + the client that renders the stream (`components/ui/ChatDrawer.tsx`). This skill is the contract for all three: the v7 streaming shape, env-driven provider selection with silent failover, tool definitions, and the message-parts rendering rules. The route is public and recruiter-visible — secrets and persona stay out of it.
 
 ## When to use / when not
 
 - use: adding or editing `app/api/chat/route.ts`; changing `lib/chat-fallback.ts` (provider order, breaker, failover); adding a chat tool; changing how the client renders message parts or tool output; touching provider/model env wiring.
 - skip: pure presentational changes to `ChatDrawer` that do not touch `message.parts`, the stream, or tool rendering; work on the scheduler data layer (`lib/google-calendar.ts`, `lib/availability.ts`) that does not change the tool contract.
 
-## The v6 streaming pattern (canonical)
+## The v7 streaming pattern (canonical)
 
 The route MUST follow this exact shape. Canonical file: `app/api/chat/route.ts`.
 
