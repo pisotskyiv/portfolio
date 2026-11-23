@@ -8,7 +8,7 @@ Personal portfolio site for an AI/LLM-focused full-stack engineer. The build pro
 
 - **Next.js 16** (App Router) + **React 19** — server components first; client islands only where interaction demands.
 - **TypeScript** — strict.
-- **Tailwind CSS v4** — utility styling, dark/light via `prefers-color-scheme`.
+- **Tailwind CSS v4** — utility styling; dark theme by default with a light/dark toggle in the nav (choice persisted in `localStorage`, OS preference intentionally not consulted).
 - **Vitest + React Testing Library** — data-integrity and component render/a11y tests.
 - **GitHub Actions** — lint, typecheck, test, build on every push and PR.
 - **Vercel** — production deploy on `main`, preview deploy per PR.
