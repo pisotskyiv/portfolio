@@ -26,8 +26,16 @@ describe("Nav", () => {
   it("shows site name as a link", () => {
     render(<Nav />);
     expect(
-      screen.getByRole("link", { name: "Vlad Pisotskyi" }),
+      screen.getByRole("link", { name: "VP, Vlad Pisotskyi, home" }),
     ).toBeInTheDocument();
+  });
+
+  it("keeps the visible monogram inside the link's accessible name (WCAG 2.5.3)", () => {
+    render(<Nav />);
+    const link = screen.getByRole("link", { name: /Vlad Pisotskyi/ });
+    const visible = link.textContent?.trim() ?? "";
+    expect(visible).not.toBe("");
+    expect(link.getAttribute("aria-label")).toContain(visible);
   });
 
   it("links Work to the home work section (works from any route)", () => {

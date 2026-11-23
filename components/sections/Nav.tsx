@@ -33,7 +33,9 @@ export function Nav() {
       >
         <Link
           href="/"
-          aria-label="Vlad Pisotskyi"
+          // Starts with the visible "VP" so voice-control users can say
+          // what they see (WCAG 2.5.3, label in name).
+          aria-label="VP, Vlad Pisotskyi, home"
           className="font-bold text-accent transition-colors hover:text-accent-hover focus-ring"
         >
           VP

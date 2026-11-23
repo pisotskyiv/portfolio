@@ -6,7 +6,7 @@ test.describe("Home page", () => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Main navigation" });
     await expect(page.getByRole("banner")).toBeVisible();
-    await expect(nav.getByRole("link", { name: "Vlad Pisotskyi" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "VP, Vlad Pisotskyi, home" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "Work" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
     await expect(nav.getByRole("button", { name: "Contact" })).toBeVisible();
