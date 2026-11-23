@@ -10,8 +10,15 @@ updates:
       prefix: chore
       include: scope
     groups:
-      # Minor and patch bumps land as one PR; each major gets its own so a
-      # breaking upgrade that fails CI doesn't hold back the safe ones.
+      # Families whose packages pin each other move together at every update
+      # type, or a lone major fails npm ci / typecheck (e.g. @ai-sdk/* v4
+      # needs ai v7). Listed first: a package joins the first group it matches.
+      ai-sdk:
+        patterns: ["ai", "@ai-sdk/*"]
+      test-tooling:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "jsdom"]
+      # Everything else: minor and patch as one PR; each major on its own so
+      # a breaking upgrade that fails CI doesn't hold back the safe ones.
       npm-minor-patch:
         update-types: [minor, patch]
 
