@@ -34,7 +34,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "server-only": "^0.0.1",
-    "streamdown": "^2.5.0"
+    "streamdown": "^2.8.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.3",
