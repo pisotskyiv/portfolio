@@ -14,6 +14,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # Node 22 bundles npm 10, which mis-resolves the TypeScript 7 npm alias
+      # (@typescript/native) and rejects the lockfile. Match the npm that
+      # writes the lockfile.
+      - run: npm install -g npm@11.12.1
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
