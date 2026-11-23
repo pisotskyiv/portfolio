@@ -27,7 +27,7 @@
     "ai": "^6.0.208",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
-    "googleapis": "^173.0.0",
+    "googleapis": "^190.0.0",
     "lucide-react": "^1.21.0",
     "next": "^16.2.9",
     "next-auth": "^5.0.0-beta.31",
