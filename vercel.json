@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "schedules": {
+    "redis-keepalive": {
+      "schedule": "0 12 * * *",
+      "path": "/api/cron/redis-keepalive",
+      "requestMethod": "GET"
+    }
+  }
+}

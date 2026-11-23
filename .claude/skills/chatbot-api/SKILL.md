@@ -71,7 +71,7 @@ Each rule names its check, or is labeled `guidance:` with the missing check logg
 
 6. **Rate-limit + spend cap before public launch.**
    The route is unauthenticated and bills a paid LLM per request, so it MUST sit behind a per-IP rate limiter and a spend cap.
-   Check: `lib/rate-limit.ts` (`checkRateLimit`) caps the route per client IP and returns 429 when exceeded; pair it with Upstash env plus a provider monthly spend cap as the backstop.
+   Check: `lib/rate-limit.ts` (`checkRateLimit`) caps the route per client IP and returns 429 when exceeded. A limiter outage (Redis unreachable, or Upstash env missing in production) still fails closed but sets `unavailable` on the result, and the route answers 503 `fatal`, never 429 `rate_limited` (covered in `lib/rate-limit.test.ts` + `app/api/chat/route.test.ts`). The free Upstash database is kept alive by the daily `redis-keepalive` schedule in `vercel.json`, which hits `app/api/cron/redis-keepalive` (auth, heartbeat and failure codes covered in its `route.test.ts`). guidance: that Vercel registered the schedule and that `CRON_SECRET` is set in Vercel env can't be tested; confirm in the dashboard (Settings, Cron Jobs) after deploy. Pair all of it with a provider monthly spend cap as the backstop.
 
 7. **A hang is a failure: deadline every provider attempt.**
    Failover fires only on a rejected `doStream`/`doGenerate`; a provider that connects but never emits must be *converted* into a rejection or it rides to the platform kill with no error, no failover, and a client stuck on a spinner (prod incident 2026-07-06). Every `doStream` attempt in `lib/chat-fallback.ts` races a first-token deadline (`FIRST_TOKEN_TIMEOUT_MS`) well under the route's stream abort and `maxDuration`; on expiry it aborts the attempt and throws `FirstTokenTimeoutError`, which classifies transient and fails over. The watchdog disengages after the first real part — a mid-stream stall must never silently fail over once output reached the client.
@@ -92,5 +92,5 @@ Each rule names its check, or is labeled `guidance:` with the missing check logg
 did:       <route/client/test files created or changed>
 gate:      green | FAILED: <which step of npm run gate>
 checked:   <ran npm run gate; npm run ship for user-visible flows; which rules were verified vs left guidance>
-needs-you: <verify deployed preview runtime/timeout; visually confirm error-state rendering; resolve launch blocker before public push> | nothing
+needs-you: <verify deployed preview runtime/timeout; visually confirm error-state rendering; resolve launch blocker before public push; confirm the redis-keepalive schedule is registered and CRON_SECRET is set if vercel.json or the cron route changed> | nothing
 ```

@@ -32,7 +32,7 @@ Anything checkable against the repo: a named file, route, symbol, env var, type 
    - Machine-local paths in committed settings.
      Check: `grep -n "/Users/" .claude/settings.json` — must be empty; machine-local permissions live in gitignored `.claude/settings.local.json`.
 2. **Claim audit — agent-driven.** Mechanical greps cannot catch a claim that is well-formed but false (a documented architecture that was deleted, copy promising an hourly reset on a daily limiter). Spawn parallel subagents, one per cluster, each instructed to compare EVERY concrete claim against code and report only mismatches with file + what-doc-says + what-code-says:
-   - cluster A: `chatbot-api` skill + chat/failover/rate-limit code + ChatDrawer user-facing copy;
+   - cluster A: `chatbot-api` skill + chat/failover/rate-limit code (incl. `app/api/cron/` + `vercel.json` schedules) + ChatDrawer user-facing copy;
    - cluster B: the remaining skills vs the files and symbols they name;
    - cluster C: CLAUDE.md + CLAUDE.local.md vs repo state (components, projects, routes, env vars, e2e coverage).
    Include in every subagent prompt: report raw findings only, no fixes.
